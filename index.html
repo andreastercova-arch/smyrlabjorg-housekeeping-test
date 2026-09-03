@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -108,6 +109,59 @@ button {
 }
 
 /* =====================================================
+   LEGEND
+   ===================================================== */
+
+.legend {
+  background: white;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-top: 4px;
+  margin-bottom: 15px;
+
+  box-shadow: 0 2px 7px rgba(0,0,0,0.05);
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  font-size: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.dot-occupied {
+  background: #ffd7d7;
+}
+
+.dot-checkout {
+  background: #d8f5dc;
+}
+
+.dot-cleaning {
+  background: #ffe0b2;
+}
+
+.dot-stayover {
+  background: #eadcff;
+}
+
+.dot-done {
+  background: #d7e8ff;
+}
+
+/* =====================================================
    SECTIONS
    ===================================================== */
 
@@ -177,67 +231,19 @@ button {
   color: #176b25;
 }
 
+.room.cleaning {
+  background: #ffe0b2;
+  color: #a85d00;
+}
+
 .room.stayover {
   background: #eadcff;
   color: #5b2492;
 }
 
-/* FINISH = BLUE */
-
 .room.done {
   background: #d7e8ff;
   color: #1455a0;
-}
-
-/* =====================================================
-   LEGEND
-   ===================================================== */
-
-.legend {
-  background: white;
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin-top: 4px;
-  margin-bottom: 15px;
-
-  box-shadow: 0 2px 7px rgba(0,0,0,0.05);
-
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-
-  font-size: 12px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.legend-dot {
-  width: 13px;
-  height: 13px;
-  border-radius: 4px;
-  display: inline-block;
-}
-
-.dot-occupied {
-  background: #ffd7d7;
-}
-
-.dot-checkout {
-  background: #d8f5dc;
-}
-
-.dot-stayover {
-  background: #eadcff;
-}
-
-/* FINISH = BLUE */
-
-.dot-done {
-  background: #d7e8ff;
 }
 
 /* =====================================================
@@ -306,11 +312,13 @@ button {
   color: #176b25;
 }
 
+#globalMenu .menu-cleaning {
+  color: #a85d00;
+}
+
 #globalMenu .menu-stayover {
   color: #5b2492;
 }
-
-/* FINISH = BLUE */
 
 #globalMenu .menu-done {
   color: #1455a0;
@@ -398,7 +406,8 @@ button {
 
   <div class="summary" id="summary"></div>
 
-  <div id="app"></div>
+
+  <!-- LEGEND - TOP -->
 
   <div class="legend">
 
@@ -410,6 +419,46 @@ button {
     <div class="legend-item">
       <span class="legend-dot dot-checkout"></span>
       🟢 Check out
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-dot dot-cleaning"></span>
+      🟠 Cleaning
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-dot dot-stayover"></span>
+      🟣 Stayover
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-dot dot-done"></span>
+      🔵 Finish
+    </div>
+
+  </div>
+
+
+  <div id="app"></div>
+
+
+  <!-- LEGEND - BOTTOM -->
+
+  <div class="legend">
+
+    <div class="legend-item">
+      <span class="legend-dot dot-occupied"></span>
+      🔴 Occupied
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-dot dot-checkout"></span>
+      🟢 Check out
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-dot dot-cleaning"></span>
+      🟠 Cleaning
     </div>
 
     <div class="legend-item">
@@ -442,11 +491,6 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
   "sb_publishable_L1YYmsLb2xCxGzW5T6_sOA_jMaehfG-";
 
-
-/*
-   We load the Supabase JavaScript library
-   directly from the official CDN.
-*/
 
 const script =
   document.createElement("script");
@@ -502,7 +546,7 @@ const sections = [
 
   {
     name: "CORRIDOR 5",
-    rooms: [147,148,149,150,151,152,153,154,155,156,157,158,159,160]
+    rooms: [147,148,149,150,151,152,153,154,155,156,157,158,159]
   }
 
 ];
@@ -850,6 +894,14 @@ function openMenu(
     </button>
 
     <button
+      class="menu-cleaning"
+      onclick="
+        selectStatus('cleaning', event)
+      ">
+      🟠 Cleaning
+    </button>
+
+    <button
       class="menu-stayover"
       onclick="
         selectStatus('stayover', event)
@@ -1034,11 +1086,6 @@ async function selectStatus(
   closeMenu();
 
 
-  /*
-    Optimistic update:
-    change screen immediately.
-  */
-
   if (
     status === "empty"
   ) {
@@ -1055,10 +1102,6 @@ async function selectStatus(
 
   render();
 
-
-  /*
-    Save to TEST Supabase.
-  */
 
   await updateRoom(
     room,
@@ -1303,6 +1346,8 @@ function updateSummary() {
 
   let checkout = 0;
 
+  let cleaning = 0;
+
   let stayover = 0;
 
   let occupied = 0;
@@ -1333,6 +1378,16 @@ function updateSummary() {
           ) {
 
             checkout++;
+
+          }
+
+
+          if (
+            states[room] ===
+            "cleaning"
+          ) {
+
+            cleaning++;
 
           }
 
@@ -1380,6 +1435,10 @@ function updateSummary() {
     </span>
 
     <span>
+      🟠 ${cleaning}
+    </span>
+
+    <span>
       🟣 ${stayover}
     </span>
 
@@ -1413,3 +1472,4 @@ document.getElementById(
 
 </body>
 </html>
+```
