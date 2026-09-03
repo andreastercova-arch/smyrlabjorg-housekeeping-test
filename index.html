@@ -31,7 +31,7 @@ header {
   top: 0;
   z-index: 1000;
   background: white;
-  padding: 9px 14px;
+  padding: 7px 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
@@ -43,14 +43,14 @@ header {
 }
 
 .title {
-  font-size: 21px;
+  font-size: 19px;
   font-weight: bold;
 }
 
 .date {
-  font-size: 13px;
+  font-size: 12px;
   color: #777;
-  margin-top: 3px;
+  margin-top: 1px;
 }
 
 .header-buttons {
@@ -339,11 +339,11 @@ button {
 @media (max-width: 600px) {
 
   header {
-    padding: 10px;
+    padding: 7px 10px;
   }
 
   .title {
-    font-size: 19px;
+    font-size: 17px;
   }
 
   .main {
@@ -351,17 +351,20 @@ button {
   }
 
   .section {
-    padding: 8px;
+    padding: 6px;
+    margin-bottom: 5px;
   }
-
+  .section-title {
+    margin-bottom: 4px;
+  }
   .rooms {
     grid-template-columns: repeat(5, 1fr);
-    gap: 5px;
+    gap: 3px;
   }
 
   .room {
-    min-height: 48px;
-    font-size: 12px;
+    min-height: 42px;
+    font-size: 11px;
   }
 
   .summary {
@@ -369,7 +372,7 @@ button {
   }
 
   .legend {
-    gap: 8px;
+    gap: 6px;
   }
 
 }
