@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Housekeeping TEST</title>
+
+<style>
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f4f5f7;
+  color: #222;
+}
+
+/* =====================================================
+   HEADER
+   ===================================================== */
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: white;
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.date {
+  font-size: 13px;
+  color: #777;
+  margin-top: 3px;
+}
+
+.header-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+button {
+  border: none;
+  border-radius: 7px;
+  padding: 7px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.occupied-all {
+  background: #ffe0e0;
+  color: #a00000;
+}
+
+.reset {
+  background: #eeeeee;
+  color: #444;
+}
+
+/* =====================================================
+   MAIN
+   ===================================================== */
+
+.main {
+  max-width: 1200px;
+  margin: auto;
+  padding: 12px;
+}
+
+/* =====================================================
+   SUMMARY
+   ===================================================== */
+
+.summary {
+  background: white;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 7px rgba(0,0,0,0.05);
+  font-size: 13px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.summary span {
+  white-space: nowrap;
+}
+
+/* =====================================================
+   SECTIONS
+   ===================================================== */
+
+.section {
+  background: white;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  padding: 10px;
+  box-shadow: 0 2px 7px rgba(0,0,0,0.05);
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+/* =====================================================
+   ROOMS
+   ===================================================== */
+
+.rooms {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+  gap: 6px;
+}
+
+.room {
+  min-height: 54px;
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: bold;
+  font-size: 13px;
+
+  cursor: pointer;
+  user-select: none;
+
+  position: relative;
+
+  transition: transform 0.08s ease;
+}
+
+.room:active {
+  transform: scale(0.96);
+}
+
+/* =====================================================
+   STATUS COLORS
+   ===================================================== */
+
+.room.empty {
+  background: #f0f1f3;
+  color: #555;
+}
+
+.room.occupied {
+  background: #ffd7d7;
+  color: #a00000;
+}
+
+.room.checkout {
+  background: #d8f5dc;
+  color: #176b25;
+}
+
+.room.stayover {
+  background: #eadcff;
+  color: #5b2492;
+}
+
+/* FINISH = BLUE */
+
+.room.done {
+  background: #d7e8ff;
+  color: #1455a0;
+}
+
+/* =====================================================
+   LEGEND
+   ===================================================== */
+
+.legend {
+  background: white;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-top: 4px;
+  margin-bottom: 15px;
+
+  box-shadow: 0 2px 7px rgba(0,0,0,0.05);
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  font-size: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.dot-occupied {
+  background: #ffd7d7;
+}
+
+.dot-checkout {
+  background: #d8f5dc;
+}
+
+.dot-stayover {
+  background: #eadcff;
+}
+
+/* FINISH = BLUE */
+
+.dot-done {
+  background: #d7e8ff;
+}
+
+/* =====================================================
+   GLOBAL DROPDOWN
+   ===================================================== */
+
+#globalMenu {
+
+  position: fixed !important;
+
+  display: none;
+
+  z-index: 2147483647 !important;
+
+  background: white;
+
+  border: 1px solid #d5d5d5;
+
+  border-radius: 9px;
+
+  padding: 5px;
+
+  min-width: 145px;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.25),
+    0 3px 10px rgba(0,0,0,0.18);
+
+  overflow-y: auto;
+
+  isolation: isolate;
+}
+
+#globalMenu button {
+
+  display: block;
+
+  width: 100%;
+
+  text-align: left;
+
+  background: white;
+
+  color: #222;
+
+  padding: 9px 10px;
+
+  margin: 0;
+
+  font-size: 13px;
+
+  font-weight: normal;
+
+  border-radius: 6px;
+}
+
+#globalMenu button:hover {
+  background: #f1f1f1;
+}
+
+#globalMenu .menu-occupied {
+  color: #a00000;
+}
+
+#globalMenu .menu-checkout {
+  color: #176b25;
+}
+
+#globalMenu .menu-stayover {
+  color: #5b2492;
+}
+
+/* FINISH = BLUE */
+
+#globalMenu .menu-done {
+  color: #1455a0;
+}
+
+#globalMenu .menu-empty {
+  color: #555;
+}
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width: 600px) {
+
+  header {
+    padding: 10px;
+  }
+
+  .title {
+    font-size: 19px;
+  }
+
+  .main {
+    padding: 8px;
+  }
+
+  .section {
+    padding: 8px;
+  }
+
+  .rooms {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+  }
+
+  .room {
+    min-height: 48px;
+    font-size: 12px;
+  }
+
+  .summary {
+    gap: 8px;
+  }
+
+  .legend {
+    gap: 8px;
+  }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+<header>
+
+  <div class="header-top">
+
+    <div>
+      <div class="title">Housekeeping TEST</div>
+      <div class="date" id="date"></div>
+    </div>
+
+    <div class="header-buttons">
+
+      <button class="occupied-all" onclick="occupiedAll()">
+        🔴 Occupied all
+      </button>
+
+      <button class="reset" onclick="resetAll()">
+        Reset all
+      </button>
+
+    </div>
+
+  </div>
+
+</header>
+
+
+<div class="main">
+
+  <div class="summary" id="summary"></div>
+
+  <div id="app"></div>
+
+  <div class="legend">
+
+    <div class="legend-item">
+      <span class="legend-dot dot-occupied"></span>
+      🔴 Occupied
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-dot dot-checkout"></span>
+      🟢 Check out
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-dot dot-stayover"></span>
+      🟣 Stayover
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-dot dot-done"></span>
+      🔵 Finish
+    </div>
+
+  </div>
+
+</div>
+
+
+<div id="globalMenu"></div>
+
+
+<script>
+
+/* =====================================================
+   SUPABASE TEST CONNECTION
+   ===================================================== */
+
+const SUPABASE_URL =
+  "https://pvsrwvxagjriuigziuxv.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_L1YYmsLb2xCxGzW5T6_sOA_jMaehfG-";
+
+
+/*
+   We load the Supabase JavaScript library
+   directly from the official CDN.
+*/
+
+const script =
+  document.createElement("script");
+
+script.src =
+  "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+
+script.onload = function() {
+
+  window.supabaseClient =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+  startApp();
+
+};
+
+document.head.appendChild(script);
+
+
+/* =====================================================
+   ROOMS
+   ===================================================== */
+
+const sections = [
+
+  {
+    name: "LUXURY 3–10",
+    rooms: [3,4,5,6,7,8,9,10]
+  },
+
+  {
+    name: "CORRIDOR 1",
+    rooms: [101,102,103,104,105,106,107,108,109,110]
+  },
+
+  {
+    name: "CORRIDOR 2",
+    rooms: [111,112,113,114,115,116,117,118,119,120]
+  },
+
+  {
+    name: "CORRIDOR 3",
+    rooms: [121,122,123,124,125,126,127,128,129,130,131,132]
+  },
+
+  {
+    name: "CORRIDOR 4",
+    rooms: [133,134,135,136,137,138,139,140,141,142,143,144,145,146]
+  },
+
+  {
+    name: "CORRIDOR 5",
+    rooms: [147,148,149,150,151,152,153,154,155,156,157,158,159,160]
+  }
+
+];
+
+
+/* =====================================================
+   STATE
+   ===================================================== */
+
+let states = {};
+
+let currentMenuRoom = null;
+
+let currentMenuRoomElement = null;
+
+
+/* =====================================================
+   START
+   ===================================================== */
+
+async function startApp() {
+
+  await loadRooms();
+
+  render();
+
+  setupRealtime();
+
+}
+
+
+/* =====================================================
+   LOAD ROOMS FROM SUPABASE
+   ===================================================== */
+
+async function loadRooms() {
+
+  const {
+    data,
+    error
+  } =
+    await window.supabaseClient
+      .from("rooms")
+      .select("room_number,status");
+
+
+  if (error) {
+
+    console.error(
+      "Supabase error:",
+      error
+    );
+
+    alert(
+      "Could not connect to the database."
+    );
+
+    return;
+
+  }
+
+
+  states = {};
+
+
+  data.forEach(room => {
+
+    if (
+      room.status &&
+      room.status !== "empty"
+    ) {
+
+      states[
+        room.room_number
+      ] = room.status;
+
+    }
+
+  });
+
+}
+
+
+/* =====================================================
+   UPDATE ONE ROOM
+   ===================================================== */
+
+async function updateRoom(
+  room,
+  status
+) {
+
+  const {
+    error
+  } =
+    await window.supabaseClient
+      .from("rooms")
+      .update({
+        status: status,
+        updated_at: new Date().toISOString()
+      })
+      .eq(
+        "room_number",
+        room
+      );
+
+
+  if (error) {
+
+    console.error(
+      "Update error:",
+      error
+    );
+
+    alert(
+      "Could not save the room status."
+    );
+
+    return false;
+
+  }
+
+
+  return true;
+
+}
+
+
+/* =====================================================
+   REALTIME
+   ===================================================== */
+
+function setupRealtime() {
+
+  window.supabaseClient
+    .channel("rooms-live-test")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "rooms"
+      },
+      function(payload) {
+
+        console.log(
+          "Realtime update:",
+          payload
+        );
+
+
+        if (
+          payload.eventType ===
+          "DELETE"
+        ) {
+
+          delete states[
+            payload.old.room_number
+          ];
+
+        } else {
+
+          const room =
+            payload.new.room_number;
+
+          const status =
+            payload.new.status;
+
+
+          if (
+            status === "empty"
+          ) {
+
+            delete states[room];
+
+          } else {
+
+            states[room] =
+              status;
+
+          }
+
+        }
+
+
+        render();
+
+      }
+    )
+    .subscribe();
+
+}
+
+
+/* =====================================================
+   RENDER
+   ===================================================== */
+
+function render() {
+
+  const app =
+    document.getElementById("app");
+
+  app.innerHTML = "";
+
+
+  sections.forEach(
+    section => {
+
+      const sectionDiv =
+        document.createElement("div");
+
+      sectionDiv.className =
+        "section";
+
+
+      const title =
+        document.createElement("div");
+
+      title.className =
+        "section-title";
+
+      title.textContent =
+        section.name;
+
+
+      const roomsDiv =
+        document.createElement("div");
+
+      roomsDiv.className =
+        "rooms";
+
+
+      section.rooms.forEach(
+        room => {
+
+          const roomDiv =
+            document.createElement("div");
+
+
+          roomDiv.className =
+            "room " +
+            (states[room] ||
+            "empty");
+
+
+          roomDiv.textContent =
+            room;
+
+
+          roomDiv.addEventListener(
+            "click",
+            function(event) {
+
+              event.stopPropagation();
+
+              openMenu(
+                room,
+                roomDiv
+              );
+
+            }
+          );
+
+
+          roomsDiv.appendChild(
+            roomDiv
+          );
+
+        }
+      );
+
+
+      sectionDiv.appendChild(
+        title
+      );
+
+      sectionDiv.appendChild(
+        roomsDiv
+      );
+
+      app.appendChild(
+        sectionDiv
+      );
+
+    }
+  );
+
+
+  updateSummary();
+
+}
+
+
+/* =====================================================
+   OPEN MENU
+   ===================================================== */
+
+function openMenu(
+  room,
+  roomElement
+) {
+
+  currentMenuRoom =
+    room;
+
+  currentMenuRoomElement =
+    roomElement;
+
+
+  const menu =
+    document.getElementById(
+      "globalMenu"
+    );
+
+
+  if (
+    menu.parentElement !==
+    document.body
+  ) {
+
+    document.body.appendChild(
+      menu
+    );
+
+  }
+
+
+  menu.innerHTML = `
+
+    <button
+      class="menu-occupied"
+      onclick="
+        selectStatus('occupied', event)
+      ">
+      🔴 Occupied
+    </button>
+
+    <button
+      class="menu-checkout"
+      onclick="
+        selectStatus('checkout', event)
+      ">
+      🟢 Check out
+    </button>
+
+    <button
+      class="menu-stayover"
+      onclick="
+        selectStatus('stayover', event)
+      ">
+      🟣 Stayover
+    </button>
+
+    <button
+      class="menu-done"
+      onclick="
+        selectStatus('done', event)
+      ">
+      🔵 Finish
+    </button>
+
+    <button
+      class="menu-empty"
+      onclick="
+        selectStatus('empty', event)
+      ">
+      ◻ Empty
+    </button>
+
+  `;
+
+
+  menu.style.display =
+    "block";
+
+  menu.style.visibility =
+    "hidden";
+
+
+  positionMenu();
+
+
+  menu.style.visibility =
+    "visible";
+
+}
+
+
+/* =====================================================
+   POSITION MENU
+   ===================================================== */
+
+function positionMenu() {
+
+  if (
+    !currentMenuRoomElement
+  ) {
+
+    return;
+
+  }
+
+
+  const menu =
+    document.getElementById(
+      "globalMenu"
+    );
+
+
+  const room =
+    currentMenuRoomElement
+      .getBoundingClientRect();
+
+
+  const menuWidth =
+    menu.offsetWidth;
+
+  const menuHeight =
+    menu.offsetHeight;
+
+
+  let left =
+    room.left +
+    (room.width / 2) -
+    (menuWidth / 2);
+
+
+  left =
+    Math.max(
+      5,
+      Math.min(
+        left,
+        window.innerWidth -
+        menuWidth -
+        5
+      )
+    );
+
+
+  const spaceBelow =
+    window.innerHeight -
+    room.bottom -
+    8;
+
+
+  const spaceAbove =
+    room.top -
+    8;
+
+
+  let top;
+
+
+  if (
+    spaceBelow >= menuHeight ||
+    spaceBelow >= spaceAbove
+  ) {
+
+    top =
+      room.bottom + 6;
+
+  } else {
+
+    top =
+      room.top -
+      menuHeight -
+      6;
+
+  }
+
+
+  top =
+    Math.max(
+      5,
+      Math.min(
+        top,
+        window.innerHeight -
+        menuHeight -
+        5
+      )
+    );
+
+
+  menu.style.left =
+    left + "px";
+
+  menu.style.top =
+    top + "px";
+
+  menu.style.maxHeight =
+    Math.max(
+      80,
+      window.innerHeight - 10
+    ) + "px";
+
+}
+
+
+/* =====================================================
+   SELECT STATUS
+   ===================================================== */
+
+async function selectStatus(
+  status,
+  event
+) {
+
+  if (event) {
+
+    event.stopPropagation();
+
+  }
+
+
+  if (
+    currentMenuRoom === null
+  ) {
+
+    return;
+
+  }
+
+
+  const room =
+    currentMenuRoom;
+
+
+  closeMenu();
+
+
+  /*
+    Optimistic update:
+    change screen immediately.
+  */
+
+  if (
+    status === "empty"
+  ) {
+
+    delete states[room];
+
+  } else {
+
+    states[room] =
+      status;
+
+  }
+
+
+  render();
+
+
+  /*
+    Save to TEST Supabase.
+  */
+
+  await updateRoom(
+    room,
+    status
+  );
+
+}
+
+
+/* =====================================================
+   CLOSE MENU
+   ===================================================== */
+
+function closeMenu() {
+
+  const menu =
+    document.getElementById(
+      "globalMenu"
+    );
+
+
+  menu.style.display =
+    "none";
+
+  menu.style.visibility =
+    "hidden";
+
+
+  currentMenuRoom =
+    null;
+
+  currentMenuRoomElement =
+    null;
+
+}
+
+
+/* =====================================================
+   CLICK OUTSIDE
+   ===================================================== */
+
+document.addEventListener(
+  "click",
+  function(event) {
+
+    const menu =
+      document.getElementById(
+        "globalMenu"
+      );
+
+
+    if (
+      !menu.contains(
+        event.target
+      )
+    ) {
+
+      closeMenu();
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   KEEP MENU ATTACHED
+   ===================================================== */
+
+window.addEventListener(
+  "scroll",
+  function() {
+
+    if (
+      currentMenuRoom !== null
+    ) {
+
+      positionMenu();
+
+    }
+
+  },
+  true
+);
+
+
+window.addEventListener(
+  "resize",
+  function() {
+
+    if (
+      currentMenuRoom !== null
+    ) {
+
+      positionMenu();
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   OCCUPIED ALL
+   ===================================================== */
+
+async function occupiedAll() {
+
+  const confirmed =
+    confirm(
+      "Set ALL rooms to Occupied?\n\n" +
+      "This will change the status of every room."
+    );
+
+
+  if (!confirmed) {
+
+    return;
+
+  }
+
+
+  const allRooms = [];
+
+
+  sections.forEach(
+    section => {
+
+      section.rooms.forEach(
+        room => {
+
+          allRooms.push(
+            room
+          );
+
+          states[room] =
+            "occupied";
+
+        }
+      );
+
+    }
+  );
+
+
+  render();
+
+
+  for (
+    const room of allRooms
+  ) {
+
+    await updateRoom(
+      room,
+      "occupied"
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   RESET ALL
+   ===================================================== */
+
+async function resetAll() {
+
+  const confirmed =
+    confirm(
+      "Reset ALL room statuses?\n\n" +
+      "This cannot be undone."
+    );
+
+
+  if (!confirmed) {
+
+    return;
+
+  }
+
+
+  sections.forEach(
+    section => {
+
+      section.rooms.forEach(
+        room => {
+
+          delete states[room];
+
+        }
+      );
+
+    }
+  );
+
+
+  render();
+
+
+  const {
+    error
+  } =
+    await window.supabaseClient
+      .from("rooms")
+      .update({
+        status: "empty",
+        updated_at:
+          new Date().toISOString()
+      })
+      .neq(
+        "room_number",
+        0
+      );
+
+
+  if (error) {
+
+    console.error(
+      "Reset error:",
+      error
+    );
+
+    alert(
+      "Could not reset the rooms."
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   SUMMARY
+   ===================================================== */
+
+function updateSummary() {
+
+  let total = 0;
+
+  let done = 0;
+
+  let checkout = 0;
+
+  let stayover = 0;
+
+  let occupied = 0;
+
+
+  sections.forEach(
+    section => {
+
+      section.rooms.forEach(
+        room => {
+
+          total++;
+
+
+          if (
+            states[room] ===
+            "done"
+          ) {
+
+            done++;
+
+          }
+
+
+          if (
+            states[room] ===
+            "checkout"
+          ) {
+
+            checkout++;
+
+          }
+
+
+          if (
+            states[room] ===
+            "stayover"
+          ) {
+
+            stayover++;
+
+          }
+
+
+          if (
+            states[room] ===
+            "occupied"
+          ) {
+
+            occupied++;
+
+          }
+
+        }
+      );
+
+    }
+  );
+
+
+  document.getElementById(
+    "summary"
+  ).innerHTML = `
+
+    <span>
+      <strong>${total}</strong> rooms
+    </span>
+
+    <span>
+      🔴 ${occupied}
+    </span>
+
+    <span>
+      🟢 ${checkout}
+    </span>
+
+    <span>
+      🟣 ${stayover}
+    </span>
+
+    <span>
+      🔵 ${done}
+    </span>
+
+  `;
+
+}
+
+
+/* =====================================================
+   DATE
+   ===================================================== */
+
+document.getElementById(
+  "date"
+).textContent =
+  new Date().toLocaleDateString(
+    "en-GB",
+    {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    }
+  );
+
+</script>
+
+</body>
+</html>
