@@ -96,10 +96,30 @@ header {
   flex-wrap: wrap;
 }
 
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
 .date {
   font-size: 12px;
   color: #777;
-  margin-top: 2px;
+}
+
+.history-btn {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #f0f2f5;
+  color: #444;
+  border: 1px solid #d8dde4;
+  cursor: pointer;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .user-badge {
@@ -300,6 +320,14 @@ button {
   transform: scale(0.96);
 }
 
+.room-tag-icon {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 10px;
+  line-height: 1;
+}
+
 /* =====================================================
    STATUS COLORS
    ===================================================== */
@@ -417,7 +445,7 @@ button {
   border: 1px solid #d5d5d5;
   border-radius: 9px;
   padding: 5px;
-  min-width: 145px;
+  min-width: 155px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.25), 0 3px 10px rgba(0,0,0,0.18);
   overflow-y: auto;
   isolation: isolate;
@@ -462,6 +490,47 @@ button {
 
 #globalMenu .menu-empty {
   color: #555;
+}
+
+.menu-divider {
+  height: 1px;
+  background: #e8e8e8;
+  margin: 5px 0;
+}
+
+.menu-section-label {
+  font-size: 10px;
+  font-weight: bold;
+  color: #888;
+  text-transform: uppercase;
+  padding: 3px 8px 1px 8px;
+}
+
+.menu-tags {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3px;
+  padding: 2px;
+}
+
+.menu-tags button {
+  font-size: 11px;
+  padding: 6px 4px;
+  text-align: center;
+  background: #f5f6f8;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.menu-tags button.active {
+  background: #fee;
+  color: #c00;
+  border: 1px solid #fcc;
+}
+
+.menu-tags button.clear {
+  color: #777;
+  font-weight: normal;
 }
 
 /* =====================================================
@@ -594,6 +663,107 @@ button {
 }
 
 /* =====================================================
+   HISTORY MODAL
+   ===================================================== */
+
+#historyModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.history-card {
+  background: white;
+  width: 100%;
+  max-width: 440px;
+  max-height: 85vh;
+  border-radius: 14px;
+  box-shadow: 0 10px 35px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.history-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-title {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.history-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #777;
+  padding: 4px;
+}
+
+.history-tabs {
+  display: flex;
+  overflow-x: auto;
+  padding: 8px 12px;
+  gap: 6px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #eee;
+}
+
+.history-tab {
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: bold;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.history-tab.active {
+  background: #1455a0;
+  color: white;
+  border-color: #1455a0;
+}
+
+.history-content {
+  padding: 14px 16px;
+  overflow-y: auto;
+  font-size: 13px;
+}
+
+.history-corridor-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.history-corridor-name {
+  font-weight: bold;
+}
+
+.history-worker-name {
+  color: #1455a0;
+  font-weight: bold;
+}
+
+/* =====================================================
    MOBILE
    ===================================================== */
 
@@ -650,6 +820,18 @@ button {
 <!-- TOAST ALERT -->
 <div id="toast">Room 101 - Check out</div>
 
+<!-- HISTORY MODAL -->
+<div id="historyModal">
+  <div class="history-card">
+    <div class="history-header">
+      <div class="history-title">📅 Housekeeping History</div>
+      <button class="history-close" onclick="closeHistoryModal()">✕</button>
+    </div>
+    <div class="history-tabs" id="historyTabs"></div>
+    <div class="history-content" id="historyContent">Loading history...</div>
+  </div>
+</div>
+
 <!-- LOGIN OVERLAY -->
 <div id="loginOverlay">
   <div class="login-card">
@@ -694,7 +876,10 @@ button {
         <span id="shiftControls"></span>
         <button class="logout-btn" onclick="logout()">Log out</button>
       </div>
-      <div class="date" id="date"></div>
+      <div class="date-row">
+        <div class="date" id="date"></div>
+        <button class="history-btn" onclick="openHistoryModal()">📅 History</button>
+      </div>
     </div>
 
     <div class="header-buttons">
@@ -822,6 +1007,7 @@ const sections = [
    STATE
    ===================================================== */
 let states = {};
+let notes = {};                // { 101: 'dnd', 102: 'issue', 105: 'cot' }
 let currentWorker = null;      // { name, pin, role }
 let allWorkers = [];           // All workers
 let todayAttendance = [];      // Workers who checked in today: ['Anna', 'Dominik']
@@ -1117,20 +1303,31 @@ setInterval(async () => {
 
 async function silentSyncRooms() {
   try {
-    const { data, error } = await window.supabaseClient
+    let res = await window.supabaseClient
       .from("rooms")
-      .select("room_number,status");
+      .select("room_number,status,note");
 
-    if (!error && data) {
+    if (res.error) {
+      res = await window.supabaseClient.from("rooms").select("room_number,status");
+    }
+
+    if (!res.error && res.data) {
       let changed = false;
-      data.forEach(room => {
+      res.data.forEach(room => {
         const current = states[room.room_number] || "empty";
         const incoming = (room.status && room.status !== "empty") ? room.status : "empty";
-        if (current !== incoming) {
+        const currentNote = notes[room.room_number] || "";
+        const incomingNote = room.note || "";
+
+        if (current !== incoming || currentNote !== incomingNote) {
           changed = true;
           if (incoming === "empty") delete states[room.room_number];
           else states[room.room_number] = incoming;
-          updateRoomElement(room.room_number, incoming);
+          
+          if (incomingNote) notes[room.room_number] = incomingNote;
+          else delete notes[room.room_number];
+
+          updateRoomElement(room.room_number, incoming, incomingNote);
         }
       });
       if (changed) updateSummary();
@@ -1242,27 +1439,35 @@ function isManagerOrAdmin() {
    LOAD ROOMS FROM SUPABASE
    ===================================================== */
 async function loadRooms() {
-  const { data, error } = await window.supabaseClient
+  let res = await window.supabaseClient
     .from("rooms")
-    .select("room_number,status");
+    .select("room_number,status,note");
 
-  if (error) {
-    console.error("Supabase error:", error);
+  if (res.error) {
+    res = await window.supabaseClient.from("rooms").select("room_number,status");
+  }
+
+  if (res.error) {
+    console.error("Supabase error:", res.error);
     setConnectionStatus("offline");
     return;
   }
 
   states = {};
-  data.forEach(room => {
+  notes = {};
+  res.data.forEach(room => {
     if (room.status && room.status !== "empty") {
       states[room.room_number] = room.status;
+    }
+    if (room.note) {
+      notes[room.room_number] = room.note;
     }
   });
   setConnectionStatus("online");
 }
 
 /* =====================================================
-   UPDATE ONE ROOM (BROADCAST + POSTGRES)
+   UPDATE ONE ROOM & NOTES
    ===================================================== */
 async function updateRoom(room, status) {
   const previousStatus = states[room] || "empty";
@@ -1272,9 +1477,9 @@ async function updateRoom(room, status) {
   } else {
     states[room] = status;
   }
-  updateRoomElement(room, status);
+  updateRoomElement(room, status, notes[room]);
 
-  broadcastEvent("room_change", { room: room, status: status });
+  broadcastEvent("room_change", { room: room, status: status, note: notes[room] || "" });
 
   const { error } = await window.supabaseClient
     .from("rooms")
@@ -1288,8 +1493,8 @@ async function updateRoom(room, status) {
     console.error("Update error:", error);
     if (previousStatus === "empty") delete states[room];
     else states[room] = previousStatus;
-    updateRoomElement(room, previousStatus);
-    broadcastEvent("room_change", { room: room, status: previousStatus });
+    updateRoomElement(room, previousStatus, notes[room]);
+    broadcastEvent("room_change", { room: room, status: previousStatus, note: notes[room] || "" });
     alert("Error: Could not save room change to database.");
     return false;
   }
@@ -1297,10 +1502,48 @@ async function updateRoom(room, status) {
   return true;
 }
 
-function updateRoomElement(room, status) {
+async function setRoomNote(tag, event) {
+  if (event) event.stopPropagation();
+  if (currentMenuRoom === null) return;
+
+  const room = currentMenuRoom;
+  const previousNote = notes[room] || "";
+
+  if (!tag) delete notes[room];
+  else notes[room] = tag;
+
+  updateRoomElement(room, states[room] || "empty", tag);
+  closeMenu();
+
+  broadcastEvent("room_change", { room: room, status: states[room] || "empty", note: tag });
+
+  // Update in DB (gracefully skips if note column not yet created in Supabase)
+  const { error } = await window.supabaseClient
+    .from("rooms")
+    .update({
+      note: tag,
+      updated_at: new Date().toISOString()
+    })
+    .eq("room_number", room);
+
+  if (error) {
+    console.warn("Could not save note to database (column might not be created yet):", error);
+  }
+}
+
+function getNoteIcon(tag) {
+  if (tag === "dnd") return "⛔";
+  if (tag === "issue") return "⚠️";
+  if (tag === "cot") return "👶";
+  return "";
+}
+
+function updateRoomElement(room, status, noteTag) {
   const el = document.getElementById("room-" + room);
   if (el) {
     el.className = "room " + (status || "empty");
+    const tagIcon = getNoteIcon(noteTag !== undefined ? noteTag : notes[room]);
+    el.innerHTML = `<span>${room}</span>${tagIcon ? `<span class="room-tag-icon">${tagIcon}</span>` : ''}`;
   }
   updateSummary();
 }
@@ -1318,16 +1561,19 @@ function setupRealtime() {
       config: { broadcast: { self: false } }
     })
     .on("broadcast", { event: "room_change" }, (payload) => {
-      const { room, status } = payload.payload;
+      const { room, status, note } = payload.payload;
       const oldStatus = states[room] || "empty";
 
       if (status === "empty") delete states[room];
       else states[room] = status;
 
+      if (note) notes[room] = note;
+      else delete notes[room];
+
       if (status === "checkout" && oldStatus !== "checkout") {
         handleCheckoutNotification(room);
       }
-      updateRoomElement(room, status);
+      updateRoomElement(room, status, note);
     })
     .on("broadcast", { event: "attendance_change" }, async () => {
       await loadAttendance();
@@ -1344,19 +1590,24 @@ function setupRealtime() {
         if (payload.eventType === "DELETE") {
           const room = payload.old.room_number;
           delete states[room];
-          updateRoomElement(room, "empty");
+          delete notes[room];
+          updateRoomElement(room, "empty", "");
         } else {
           const room = payload.new.room_number;
           const newStatus = payload.new.status;
+          const newNote = payload.new.note || "";
           const oldStatus = states[room] || "empty";
 
           if (newStatus === "empty") delete states[room];
           else states[room] = newStatus;
 
+          if (newNote) notes[room] = newNote;
+          else delete notes[room];
+
           if (newStatus === "checkout" && oldStatus !== "checkout") {
             handleCheckoutNotification(room);
           }
-          updateRoomElement(room, newStatus);
+          updateRoomElement(room, newStatus, newNote);
         }
       }
     )
@@ -1529,7 +1780,9 @@ function render() {
       const roomDiv = document.createElement("div");
       roomDiv.id = "room-" + room;
       roomDiv.className = "room " + (states[room] || "empty");
-      roomDiv.textContent = room;
+      
+      const tagIcon = getNoteIcon(notes[room]);
+      roomDiv.innerHTML = `<span>${room}</span>${tagIcon ? `<span class="room-tag-icon">${tagIcon}</span>` : ''}`;
 
       roomDiv.addEventListener("click", function(event) {
         event.stopPropagation();
@@ -1552,7 +1805,7 @@ function render() {
 }
 
 /* =====================================================
-   OPEN MENU
+   OPEN MENU (ROLE-BASED STATUSES + NOTES)
    ===================================================== */
 function openMenu(room, roomElement) {
   currentMenuRoom = room;
@@ -1564,26 +1817,72 @@ function openMenu(room, roomElement) {
     document.body.appendChild(menu);
   }
 
-  menu.innerHTML = `
-    <button class="menu-occupied" onclick="selectStatus('occupied', event)">
-      🔴 Occupied
-    </button>
-    <button class="menu-checkout" onclick="selectStatus('checkout', event)">
-      🟢 Check out
-    </button>
-    <button class="menu-cleaning" onclick="selectStatus('cleaning', event)">
-      🟠 Cleaning
-    </button>
-    <button class="menu-stayover" onclick="selectStatus('stayover', event)">
-      🟣 Stayover
-    </button>
-    <button class="menu-done" onclick="selectStatus('done', event)">
-      🔵 Clean room
-    </button>
-    <button class="menu-empty" onclick="selectStatus('empty', event)">
-      ◻ Empty
-    </button>
+  const isCleaner = currentWorker && currentWorker.role === "cleaner";
+  const currentNote = notes[room] || "";
+
+  let buttonsHtml = "";
+
+  // Pro pokojské zobrazujeme POUZE 4 položky, které potřebují
+  if (isCleaner) {
+    buttonsHtml = `
+      <button class="menu-checkout" onclick="selectStatus('checkout', event)">
+        🟢 Check out
+      </button>
+      <button class="menu-cleaning" onclick="selectStatus('cleaning', event)">
+        🟠 Cleaning
+      </button>
+      <button class="menu-stayover" onclick="selectStatus('stayover', event)">
+        🟣 Stayover
+      </button>
+      <button class="menu-done" onclick="selectStatus('done', event)">
+        🔵 Clean room
+      </button>
+    `;
+  } else {
+    // Pro Recepci, Moniku a Správce zobrazujeme všech 6 voleb
+    buttonsHtml = `
+      <button class="menu-occupied" onclick="selectStatus('occupied', event)">
+        🔴 Occupied
+      </button>
+      <button class="menu-checkout" onclick="selectStatus('checkout', event)">
+        🟢 Check out
+      </button>
+      <button class="menu-cleaning" onclick="selectStatus('cleaning', event)">
+        🟠 Cleaning
+      </button>
+      <button class="menu-stayover" onclick="selectStatus('stayover', event)">
+        🟣 Stayover
+      </button>
+      <button class="menu-done" onclick="selectStatus('done', event)">
+        🔵 Clean room
+      </button>
+      <button class="menu-empty" onclick="selectStatus('empty', event)">
+        ◻ Empty
+      </button>
+    `;
+  }
+
+  // Přidání sekce pro rychlé štítky / poznámky
+  buttonsHtml += `
+    <div class="menu-divider"></div>
+    <div class="menu-section-label">Room Tag:</div>
+    <div class="menu-tags">
+      <button class="${currentNote === 'dnd' ? 'active' : ''}" onclick="setRoomNote('dnd', event)">
+        ⛔ DND
+      </button>
+      <button class="${currentNote === 'issue' ? 'active' : ''}" onclick="setRoomNote('issue', event)">
+        ⚠️ Issue
+      </button>
+      <button class="${currentNote === 'cot' ? 'active' : ''}" onclick="setRoomNote('cot', event)">
+        👶 Cot
+      </button>
+      <button class="clear" onclick="setRoomNote('', event)">
+        Clear
+      </button>
+    </div>
   `;
+
+  menu.innerHTML = buttonsHtml;
 
   menu.style.display = "block";
   menu.style.visibility = "hidden";
@@ -1670,6 +1969,106 @@ window.addEventListener("resize", function() {
 });
 
 /* =====================================================
+   HISTORY MODAL LOGIC (LAST 5 DAYS)
+   ===================================================== */
+let selectedHistoryDate = getTodayString();
+
+function getLast5Dates() {
+  const dates = [];
+  for (let i = 0; i < 5; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split("T")[0];
+    let label = "";
+    if (i === 0) label = "Today";
+    else if (i === 1) label = "Yesterday";
+    else {
+      label = d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+    }
+    dates.push({ dateStr, label });
+  }
+  return dates;
+}
+
+function openHistoryModal() {
+  const modal = document.getElementById("historyModal");
+  modal.style.display = "flex";
+  renderHistoryTabs();
+  loadHistoryForDate(selectedHistoryDate);
+}
+
+function closeHistoryModal() {
+  document.getElementById("historyModal").style.display = "none";
+}
+
+function renderHistoryTabs() {
+  const tabsContainer = document.getElementById("historyTabs");
+  const dates = getLast5Dates();
+
+  tabsContainer.innerHTML = dates.map(d => `
+    <button class="history-tab ${d.dateStr === selectedHistoryDate ? 'active' : ''}" onclick="selectHistoryDate('${d.dateStr}')">
+      ${d.label}
+    </button>
+  `).join("");
+}
+
+function selectHistoryDate(dateStr) {
+  selectedHistoryDate = dateStr;
+  renderHistoryTabs();
+  loadHistoryForDate(dateStr);
+}
+
+async function loadHistoryForDate(dateStr) {
+  const content = document.getElementById("historyContent");
+  content.innerHTML = `<p style="color:#777;">Loading data for ${dateStr}...</p>`;
+
+  try {
+    const [assignRes, attRes] = await Promise.all([
+      window.supabaseClient
+        .from("corridor_assignments")
+        .select("corridor_name,worker_name,updated_at")
+        .eq("date", dateStr),
+      window.supabaseClient
+        .from("worker_attendance")
+        .select("worker_name,logged_in_at")
+        .eq("date", dateStr)
+    ]);
+
+    const assignments = assignRes.data || [];
+    const attendance = attRes.data || [];
+
+    let html = ``;
+
+    if (attendance.length > 0) {
+      html += `
+        <div style="margin-bottom: 12px; padding: 8px 10px; background: #f0f7ff; border-radius: 8px; font-size: 12px;">
+          <strong>Staff on shift (${attendance.length}):</strong> ${attendance.map(a => a.worker_name).join(", ")}
+        </div>
+      `;
+    }
+
+    if (assignments.length === 0) {
+      html += `<p style="color: #888; text-align: center; margin: 20px 0;">No corridor assignments recorded for this day.</p>`;
+    } else {
+      html += `<div style="font-weight: bold; margin-bottom: 6px; font-size: 12px; text-transform: uppercase; color: #666;">Corridor Assignments:</div>`;
+      sections.forEach(sec => {
+        const item = assignments.find(a => a.corridor_name === sec.name);
+        html += `
+          <div class="history-corridor-item">
+            <span class="history-corridor-name">${sec.name}</span>
+            <span class="history-worker-name">${item && item.worker_name ? `👤 ${item.worker_name}` : '<span style="color:#999;font-weight:normal;">— unassigned</span>'}</span>
+          </div>
+        `;
+      });
+    }
+
+    content.innerHTML = html;
+  } catch (err) {
+    content.innerHTML = `<p style="color: #c00;">Failed to load history.</p>`;
+  }
+}
+
+/* =====================================================
    OCCUPIED ALL (OPTIMIZED FAST BATCH + BROADCAST)
    ===================================================== */
 async function occupiedAll() {
@@ -1683,7 +2082,7 @@ async function occupiedAll() {
     section.rooms.forEach(room => {
       states[room] = "occupied";
       updateRoomElement(room, "occupied");
-      broadcastEvent("room_change", { room: room, status: "occupied" });
+      broadcastEvent("room_change", { room: room, status: "occupied", note: notes[room] || "" });
     });
   });
 
@@ -1714,8 +2113,9 @@ async function resetAll() {
   sections.forEach(section => {
     section.rooms.forEach(room => {
       delete states[room];
-      updateRoomElement(room, "empty");
-      broadcastEvent("room_change", { room: room, status: "empty" });
+      delete notes[room];
+      updateRoomElement(room, "empty", "");
+      broadcastEvent("room_change", { room: room, status: "empty", note: "" });
     });
   });
 
@@ -1723,6 +2123,7 @@ async function resetAll() {
     .from("rooms")
     .update({
       status: "empty",
+      note: "",
       updated_at: new Date().toISOString()
     })
     .neq("room_number", 0);
