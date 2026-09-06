@@ -50,21 +50,56 @@ header {
   gap: 10px;
 }
 
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .title {
   font-size: 20px;
   font-weight: bold;
 }
 
+.conn-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #34a853;
+  display: inline-block;
+  box-shadow: 0 0 0 2px rgba(52, 168, 83, 0.2);
+  transition: all 0.3s ease;
+}
+
+.conn-dot.reconnecting {
+  background: #fbbc04;
+  box-shadow: 0 0 0 2px rgba(251, 188, 4, 0.3);
+  animation: pulse 1s infinite;
+}
+
+.conn-dot.offline {
+  background: #ea4335;
+  box-shadow: 0 0 0 2px rgba(234, 67, 53, 0.3);
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.6; }
+}
+
 .header-user-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 3px;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
 }
 
 .date {
   font-size: 12px;
   color: #777;
+  margin-top: 2px;
 }
 
 .user-badge {
@@ -77,6 +112,46 @@ header {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+.shift-btn {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.shift-btn.start {
+  background: #e6f4ea;
+  color: #137333;
+  border: 1px solid #ceead6;
+}
+
+.shift-btn.active {
+  background: #ceead6;
+  color: #0d652d;
+}
+
+.shift-end-link {
+  font-size: 10px;
+  color: #888;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-left: 2px;
+}
+
+.attendance-badge {
+  font-size: 11px;
+  background: #f1f3f4;
+  color: #444;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: bold;
 }
 
 .logout-btn {
@@ -174,11 +249,12 @@ button {
 
 .assign-select {
   font-size: 11px;
-  padding: 2px 4px;
-  border-radius: 5px;
+  padding: 3px 6px;
+  border-radius: 6px;
   border: 1px solid #ccc;
   background: white;
   font-weight: normal;
+  max-width: 150px;
 }
 
 .btn-finish-corridor {
@@ -217,7 +293,7 @@ button {
   cursor: pointer;
   user-select: none;
   position: relative;
-  transition: transform 0.08s ease;
+  transition: transform 0.08s ease, background-color 0.12s ease;
 }
 
 .room:active {
@@ -399,7 +475,7 @@ button {
   transform: translateX(-50%) translateY(-20px);
   background: #1e293b;
   color: #ffffff;
-  padding: 10px 16px;
+  padding: 10px 18px;
   border-radius: 30px;
   font-size: 13px;
   font-weight: bold;
@@ -431,7 +507,7 @@ button {
   bottom: 0;
   background: #f4f5f7;
   z-index: 99999;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 20px;
@@ -578,7 +654,7 @@ button {
 <div id="loginOverlay">
   <div class="login-card">
     <div class="login-title">Smyrlabjörg</div>
-    <div class="login-subtitle">Zadejte svůj 4místný PIN</div>
+    <div class="login-subtitle">Přihlášení na tomto telefonu (zadejte PIN)</div>
 
     <div class="pin-display">
       <div class="pin-dot" id="dot-0"></div>
@@ -602,9 +678,6 @@ button {
       <button class="pin-btn action" onclick="backspacePin()">⌫</button>
     </div>
 
-    <!-- Skrytý vstup pro podporu fyzických klávesnic na počítači -->
-    <input type="password" id="pinInputHidden" maxlength="4" style="position: absolute; opacity: 0; pointer-events: none;" />
-
     <div class="login-error" id="loginError"></div>
   </div>
 </div>
@@ -612,9 +685,13 @@ button {
 <header>
   <div class="header-top">
     <div>
-      <div class="title">Housekeeping TEST</div>
+      <div class="title-row">
+        <span class="conn-dot" id="connDot" title="Připojeno"></span>
+        <div class="title">Housekeeping TEST</div>
+      </div>
       <div class="header-user-row">
         <span class="user-badge" id="currentUserBadge">👤 Přihlašování...</span>
+        <span id="shiftControls"></span>
         <button class="logout-btn" onclick="logout()">Odhlásit</button>
       </div>
       <div class="date" id="date"></div>
@@ -698,6 +775,9 @@ function restoreScrollPosition() {
 const SUPABASE_URL = "https://pvsrwvxagjriuigziuxv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_L1YYmsLb2xCxGzW5T6_sOA_jMaehfG-";
 
+let liveChannel = null;
+let lastActiveDate = getTodayString();
+
 const script = document.createElement("script");
 script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
 script.onload = function() {
@@ -740,9 +820,10 @@ const sections = [
    STATE
    ===================================================== */
 let states = {};
-let currentWorker = null; // { name, pin, role }
-let allWorkers = [];      // Seznam pracovníků z DB
-let corridorAssignments = {}; // { "CORRIDOR 1": "Dominik" }
+let currentWorker = null;      // { name, pin, role }
+let allWorkers = [];           // Všichni pracovníci
+let todayAttendance = [];      // Pracovníci, kteří dnes začali směnu: ['Anna', 'Dominik']
+let corridorAssignments = {};  // { "CORRIDOR 1": "Dominik" }
 let currentMenuRoom = null;
 let currentMenuRoomElement = null;
 let enteredPin = "";
@@ -758,7 +839,6 @@ function playCheckoutChime() {
     const ctx = new AudioCtx();
     const now = ctx.currentTime;
 
-    // První tón (D5 - 587 Hz)
     const osc1 = ctx.createOscillator();
     const gain1 = ctx.createGain();
     osc1.type = "sine";
@@ -770,7 +850,6 @@ function playCheckoutChime() {
     osc1.start(now);
     osc1.stop(now + 0.35);
 
-    // Druhý tón (A5 - 880 Hz - jasné cinknutí)
     const osc2 = ctx.createOscillator();
     const gain2 = ctx.createGain();
     osc2.type = "sine";
@@ -782,7 +861,7 @@ function playCheckoutChime() {
     osc2.start(now + 0.12);
     osc2.stop(now + 0.7);
   } catch (e) {
-    console.warn("Audio chime prevented by browser policy:", e);
+    console.warn("Audio chime prevented:", e);
   }
 }
 
@@ -795,8 +874,16 @@ function showToast(text) {
   }, 4500);
 }
 
+function setConnectionStatus(status) {
+  const dot = document.getElementById("connDot");
+  dot.className = "conn-dot " + status;
+  if (status === "online") dot.title = "Připojeno k serveru";
+  else if (status === "reconnecting") dot.title = "Obnovuji spojení...";
+  else dot.title = "Odpojeno od serveru";
+}
+
 /* =====================================================
-   LOGIN / PIN SYSTEM
+   LOGIN / PIN SYSTEM (PERMANENT LOGIN)
    ===================================================== */
 function updatePinDots() {
   for (let i = 0; i < 4; i++) {
@@ -835,10 +922,9 @@ function backspacePin() {
   }
 }
 
-// Podpora pro fyzickou klávesnici
 document.addEventListener("keydown", (e) => {
   const overlay = document.getElementById("loginOverlay");
-  if (overlay.style.display !== "none") {
+  if (overlay && overlay.style.display === "flex") {
     if (e.key >= "0" && e.key <= "9") {
       pressPin(e.key);
     } else if (e.key === "Backspace") {
@@ -864,21 +950,13 @@ async function verifyPin() {
     return;
   }
 
-  // Úspěšné přihlášení
+  // Uloží se trvale do paměti telefonu – uživatel se už znovu nemusí přihlašovat!
   currentWorker = data;
   localStorage.setItem("hk_worker", JSON.stringify(data));
 
-  // Zápis do ranní docházky
-  await window.supabaseClient
-    .from("worker_attendance")
-    .upsert({
-      date: getTodayString(),
-      worker_name: currentWorker.name,
-      logged_in_at: new Date().toISOString()
-    }, { onConflict: "date,worker_name" });
-
   document.getElementById("loginOverlay").style.display = "none";
   updateUserHeader();
+  await loadAttendance();
   await loadAssignments();
   render();
 }
@@ -900,7 +978,7 @@ function checkSavedLogin() {
 }
 
 function logout() {
-  if (confirm("Opravdu se chcete odhlásit?")) {
+  if (confirm("Opravdu chcete zrušit přihlášení na tomto telefonu?")) {
     localStorage.removeItem("hk_worker");
     currentWorker = null;
     enteredPin = "";
@@ -911,16 +989,91 @@ function logout() {
   }
 }
 
+/* =====================================================
+   SHIFTS & ATTENDANCE (ČISTÝ STŮL KAŽDÝ DEN)
+   ===================================================== */
+function isWorkerOnShift(workerName) {
+  return todayAttendance.includes(workerName);
+}
+
+function isCurrentWorkerOnShift() {
+  if (!currentWorker) return false;
+  return isWorkerOnShift(currentWorker.name);
+}
+
+async function startShift() {
+  if (!currentWorker) return;
+
+  if (!todayAttendance.includes(currentWorker.name)) {
+    todayAttendance.push(currentWorker.name);
+  }
+  updateUserHeader();
+  render();
+
+  await window.supabaseClient
+    .from("worker_attendance")
+    .upsert({
+      date: getTodayString(),
+      worker_name: currentWorker.name,
+      logged_in_at: new Date().toISOString()
+    }, { onConflict: "date,worker_name" });
+
+  // Bleskové odeslání informace ostatním
+  broadcastEvent("attendance_change", { worker: currentWorker.name, action: "start" });
+  showToast(`🟢 Směna zahájena! Přejeme hezký den.`);
+}
+
+async function endShift() {
+  if (!currentWorker) return;
+  if (!confirm("Chcete ukončit dnešní směnu?")) return;
+
+  todayAttendance = todayAttendance.filter(w => w !== currentWorker.name);
+  updateUserHeader();
+  render();
+
+  await window.supabaseClient
+    .from("worker_attendance")
+    .delete()
+    .eq("date", getTodayString())
+    .eq("worker_name", currentWorker.name);
+
+  broadcastEvent("attendance_change", { worker: currentWorker.name, action: "end" });
+  showToast(`Směna ukončena.`);
+}
+
 function updateUserHeader() {
   const badge = document.getElementById("currentUserBadge");
+  const shiftContainer = document.getElementById("shiftControls");
+
   if (currentWorker) {
     let roleText = "";
     if (currentWorker.role === "admin") roleText = " (Správce)";
     else if (currentWorker.role === "manager") roleText = " (Vedoucí)";
     else if (currentWorker.role === "reception") roleText = " (Recepce)";
     badge.textContent = "👤 " + currentWorker.name + roleText;
+
+    if (currentWorker.role === "cleaner") {
+      const onShift = isCurrentWorkerOnShift();
+      if (onShift) {
+        shiftContainer.innerHTML = `
+          <button class="shift-btn active">✔ Na směně</button>
+          <span class="shift-end-link" onclick="endShift()">Ukončit</span>
+        `;
+      } else {
+        shiftContainer.innerHTML = `
+          <button class="shift-btn start" onclick="startShift()">🟢 Začít směnu</button>
+        `;
+      }
+    } else if (currentWorker.role === "manager" || currentWorker.role === "admin") {
+      shiftContainer.innerHTML = `
+        <span class="attendance-badge">👥 Na směně: ${todayAttendance.length}</span>
+      `;
+    } else {
+      shiftContainer.innerHTML = "";
+    }
   } else {
     badge.textContent = "👤 Nepřihlášen";
+    shiftContainer.innerHTML = "";
   }
 }
 
@@ -929,22 +1082,66 @@ function getTodayString() {
   return d.toISOString().split("T")[0];
 }
 
+function checkDateRollover() {
+  const today = getTodayString();
+  if (today !== lastActiveDate) {
+    console.log("Půlnoční přechod na nový den: čistý stůl!");
+    lastActiveDate = today;
+    updateDateDisplay();
+    reconnectAndSync();
+  }
+}
+
+/* =====================================================
+   WAKE-UP RESILIENCE (OCHRANA PROTI USNUTE RECEPCI)
+   ===================================================== */
+async function handleWakeUp() {
+  if (document.visibilityState === "visible") {
+    console.log("Aplikace probuzena ze spánku, prověřuji spojení...");
+    setConnectionStatus("reconnecting");
+    checkDateRollover();
+    await reconnectAndSync();
+  }
+}
+
+document.addEventListener("visibilitychange", handleWakeUp);
+window.addEventListener("focus", handleWakeUp);
+setInterval(checkDateRollover, 30000); // Kontrola nového dne každých 30 vteřin
+
+async function reconnectAndSync() {
+  setConnectionStatus("reconnecting");
+  try {
+    await Promise.all([
+      loadWorkers(),
+      loadAttendance(),
+      loadAssignments(),
+      loadRooms()
+    ]);
+    render();
+    setConnectionStatus("online");
+  } catch (err) {
+    console.warn("Chyba při synchronizaci po probuzení:", err);
+    setConnectionStatus("offline");
+  }
+}
+
 /* =====================================================
    INIT APP
    ===================================================== */
 async function initApp() {
   checkSavedLogin();
+  updateDateDisplay();
   await loadWorkers();
+  await loadAttendance();
   await loadAssignments();
   await loadRooms();
   render();
   setupRealtime();
-  setupAssignmentsRealtime();
   restoreScrollPosition();
 }
 
 /* =====================================================
-   LOAD WORKERS & ASSIGNMENTS
+   LOAD DATA FROM SUPABASE
    ===================================================== */
 async function loadWorkers() {
   const { data, error } = await window.supabaseClient
@@ -954,6 +1151,18 @@ async function loadWorkers() {
 
   if (!error && data) {
     allWorkers = data;
+  }
+}
+
+async function loadAttendance() {
+  const { data, error } = await window.supabaseClient
+    .from("worker_attendance")
+    .select("worker_name")
+    .eq("date", getTodayString());
+
+  if (!error && data) {
+    todayAttendance = data.map(item => item.worker_name);
+    updateUserHeader();
   }
 }
 
@@ -974,6 +1183,8 @@ async function loadAssignments() {
 async function assignCorridor(corridorName, workerName) {
   corridorAssignments[corridorName] = workerName;
   render();
+
+  broadcastEvent("assignment_change", { corridor: corridorName, worker: workerName });
 
   await window.supabaseClient
     .from("corridor_assignments")
@@ -1004,7 +1215,7 @@ async function loadRooms() {
 
   if (error) {
     console.error("Supabase error:", error);
-    alert("Could not connect to the database.");
+    setConnectionStatus("offline");
     return;
   }
 
@@ -1014,15 +1225,16 @@ async function loadRooms() {
       states[room.room_number] = room.status;
     }
   });
+  setConnectionStatus("online");
 }
 
 /* =====================================================
-   UPDATE ONE ROOM
+   UPDATE ONE ROOM (BLESKOVÉ VYSÍLÁNÍ BROADCAST)
    ===================================================== */
 async function updateRoom(room, status) {
   const previousStatus = states[room] || "empty";
 
-  // Optimistický lokální update
+  // 1. Okamžitý lokální update (0 ms)
   if (status === "empty") {
     delete states[room];
   } else {
@@ -1030,6 +1242,10 @@ async function updateRoom(room, status) {
   }
   updateRoomElement(room, status);
 
+  // 2. Bleskové vysílání do ostatních telefonů (50–100 ms)
+  broadcastEvent("room_change", { room: room, status: status });
+
+  // 3. Trvalý zápis do databáze
   const { error } = await window.supabaseClient
     .from("rooms")
     .update({
@@ -1044,6 +1260,7 @@ async function updateRoom(room, status) {
     if (previousStatus === "empty") delete states[room];
     else states[room] = previousStatus;
     updateRoomElement(room, previousStatus);
+    broadcastEvent("room_change", { room: room, status: previousStatus });
     alert("Chyba: Změnu pokoje se nepodařilo uložit do databáze.");
     return false;
   }
@@ -1051,9 +1268,6 @@ async function updateRoom(room, status) {
   return true;
 }
 
-/* =====================================================
-   IN-PLACE ROOM ELEMENT UPDATE (PREVENTS SCROLL JUMPS)
-   ===================================================== */
 function updateRoomElement(room, status) {
   const el = document.getElementById("room-" + room);
   if (el) {
@@ -1063,21 +1277,43 @@ function updateRoomElement(room, status) {
 }
 
 /* =====================================================
-   REALTIME
+   REALTIME: BROADCAST + POSTGRES CHANGES
    ===================================================== */
 function setupRealtime() {
-  window.supabaseClient
-    .channel("rooms-live-test")
+  if (liveChannel) {
+    liveChannel.unsubscribe();
+  }
+
+  liveChannel = window.supabaseClient
+    .channel("rooms-live-channel", {
+      config: { broadcast: { self: false } }
+    })
+    // 1. Blesková odezva přes Broadcast (< 100 ms)
+    .on("broadcast", { event: "room_change" }, (payload) => {
+      const { room, status } = payload.payload;
+      const oldStatus = states[room] || "empty";
+
+      if (status === "empty") delete states[room];
+      else states[room] = status;
+
+      if (status === "checkout" && oldStatus !== "checkout") {
+        handleCheckoutNotification(room);
+      }
+      updateRoomElement(room, status);
+    })
+    .on("broadcast", { event: "attendance_change" }, async () => {
+      await loadAttendance();
+      render();
+    })
+    .on("broadcast", { event: "assignment_change" }, async () => {
+      await loadAssignments();
+      render();
+    })
+    // 2. Záložní synchronizace přes databázový log (PostgreSQL)
     .on(
       "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "rooms"
-      },
+      { event: "*", schema: "public", table: "rooms" },
       function(payload) {
-        console.log("Realtime update:", payload);
-
         if (payload.eventType === "DELETE") {
           const room = payload.old.room_number;
           delete states[room];
@@ -1087,46 +1323,36 @@ function setupRealtime() {
           const newStatus = payload.new.status;
           const oldStatus = states[room] || "empty";
 
-          if (newStatus === "empty") {
-            delete states[room];
-          } else {
-            states[room] = newStatus;
-          }
+          if (newStatus === "empty") delete states[room];
+          else states[room] = newStatus;
 
-          // CÍLENÉ UPOZORNĚNÍ NA CHECK-OUT
           if (newStatus === "checkout" && oldStatus !== "checkout") {
             handleCheckoutNotification(room);
           }
-
           updateRoomElement(room, newStatus);
         }
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        setConnectionStatus("online");
+      } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        setConnectionStatus("reconnecting");
+      }
+    });
 }
 
-function setupAssignmentsRealtime() {
-  window.supabaseClient
-    .channel("assignments-live")
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "corridor_assignments"
-      },
-      function(payload) {
-        if (payload.new && payload.new.date === getTodayString()) {
-          corridorAssignments[payload.new.corridor_name] = payload.new.worker_name;
-          render();
-        }
-      }
-    )
-    .subscribe();
+function broadcastEvent(eventName, payload) {
+  if (liveChannel) {
+    liveChannel.send({
+      type: "broadcast",
+      event: eventName,
+      payload: payload
+    });
+  }
 }
 
 function handleCheckoutNotification(room) {
-  // Zjistíme, do kterého koridoru pokoj patří
   let targetSection = null;
   for (const sec of sections) {
     if (sec.rooms.includes(room)) {
@@ -1138,8 +1364,6 @@ function handleCheckoutNotification(room) {
   if (!targetSection) return;
 
   const assignedWorker = corridorAssignments[targetSection.name];
-
-  // Podmínka: Upozornění zazní pouze tomu, komu koridor patří (nebo recepci/vedoucímu)
   const isMine = currentWorker && (assignedWorker === currentWorker.name);
   const isPrivileged = currentWorker && (currentWorker.role === "manager" || currentWorker.role === "admin" || currentWorker.role === "reception");
 
@@ -1147,7 +1371,6 @@ function handleCheckoutNotification(room) {
     playCheckoutChime();
     showToast(`🔔 Pokoj ${room} má Check-out! (${targetSection.name})`);
 
-    // Systémová notifikace na mobilu
     if ("Notification" in window && Notification.permission === "granted") {
       new Notification(`Pokoj ${room}: Check-out`, {
         body: `${targetSection.name} je připraven k úklidu!`,
@@ -1157,7 +1380,6 @@ function handleCheckoutNotification(room) {
   }
 }
 
-// Vyžádání práv na notifikace při prvním kliknutí kamkoliv
 document.addEventListener("click", function requestNotifOnce() {
   if ("Notification" in window && Notification.permission === "default") {
     Notification.requestPermission();
@@ -1178,13 +1400,12 @@ async function finishCorridor(sectionName) {
 
   if (!confirmed) return;
 
-  // Optimisticky nastavíme lokálně
   section.rooms.forEach(room => {
     states[room] = "done";
     updateRoomElement(room, "done");
+    broadcastEvent("room_change", { room: room, status: "done" });
   });
 
-  // Hromadný zápis do Supabase
   const { error } = await window.supabaseClient
     .from("rooms")
     .update({
@@ -1212,7 +1433,6 @@ function render() {
     const sectionDiv = document.createElement("div");
     sectionDiv.className = "section";
 
-    // Hlavička koridoru
     const headerDiv = document.createElement("div");
     headerDiv.className = "section-header";
 
@@ -1228,28 +1448,44 @@ function render() {
     const isMine = isMyCorridor(section.name);
 
     if (canManage) {
-      // Roletka pro vedoucího / správce pro snadné přiřazení
+      // Roletka pro vedoucího – PŘEDNOSTNĚ ukazuje pracovníky, kteří dnes začali směnu!
       const select = document.createElement("select");
       select.className = "assign-select";
-      select.innerHTML = `<option value="">-- Nepřiřazeno --</option>` +
-        allWorkers
-          .filter(w => w.role === "cleaner" || w.role === "manager")
-          .map(w => `<option value="${w.name}" ${w.name === assignedName ? "selected" : ""}>${w.name}</option>`)
-          .join("");
 
+      let optionsHtml = `<option value="">-- Volné --</option>`;
+
+      const activeWorkers = allWorkers.filter(w => (w.role === "cleaner" || w.role === "manager") && todayAttendance.includes(w.name));
+      const otherWorkers = allWorkers.filter(w => (w.role === "cleaner" || w.role === "manager") && !todayAttendance.includes(w.name));
+
+      if (activeWorkers.length > 0) {
+        optionsHtml += `<optgroup label="🟢 Dnes v práci (${activeWorkers.length})">`;
+        activeWorkers.forEach(w => {
+          optionsHtml += `<option value="${w.name}" ${w.name === assignedName ? "selected" : ""}>🟢 ${w.name}</option>`;
+        });
+        optionsHtml += `</optgroup>`;
+      }
+
+      if (otherWorkers.length > 0) {
+        optionsHtml += `<optgroup label="⚪ Ostatní (nemají směnu)">`;
+        otherWorkers.forEach(w => {
+          optionsHtml += `<option value="${w.name}" ${w.name === assignedName ? "selected" : ""}>${w.name}</option>`;
+        });
+        optionsHtml += `</optgroup>`;
+      }
+
+      select.innerHTML = optionsHtml;
       select.addEventListener("change", (e) => {
         assignCorridor(section.name, e.target.value);
       });
       actionsDiv.appendChild(select);
     } else {
-      // Štítek se jménem pro pokojské a recepci
       const badge = document.createElement("span");
       badge.className = "assigned-badge" + (isMine ? " my-corridor" : "");
       badge.textContent = assignedName ? (isMine ? `👤 ${assignedName} (Moje)` : `👤 ${assignedName}`) : "— volné";
       actionsDiv.appendChild(badge);
     }
 
-    // Tlačítko Finish all u koridoru
+    // Tlačítko Finish all
     if (isMine || canManage) {
       const finishBtn = document.createElement("button");
       finishBtn.className = "btn-finish-corridor";
@@ -1261,7 +1497,6 @@ function render() {
     headerDiv.appendChild(actionsDiv);
     sectionDiv.appendChild(headerDiv);
 
-    // Mřížka pokojů
     const roomsDiv = document.createElement("div");
     roomsDiv.className = "rooms";
 
@@ -1410,7 +1645,7 @@ window.addEventListener("resize", function() {
 });
 
 /* =====================================================
-   OCCUPIED ALL (OPTIMIZED FAST BATCH)
+   OCCUPIED ALL (OPTIMIZED FAST BATCH + BROADCAST)
    ===================================================== */
 async function occupiedAll() {
   const confirmed = confirm(
@@ -1423,10 +1658,10 @@ async function occupiedAll() {
     section.rooms.forEach(room => {
       states[room] = "occupied";
       updateRoomElement(room, "occupied");
+      broadcastEvent("room_change", { room: room, status: "occupied" });
     });
   });
 
-  // Bleskový hromadný zápis v 1 dotazu
   const { error } = await window.supabaseClient
     .from("rooms")
     .update({
@@ -1442,7 +1677,7 @@ async function occupiedAll() {
 }
 
 /* =====================================================
-   RESET ALL (OPTIMIZED FAST BATCH)
+   RESET ALL (OPTIMIZED FAST BATCH + BROADCAST)
    ===================================================== */
 async function resetAll() {
   const confirmed = confirm(
@@ -1455,6 +1690,7 @@ async function resetAll() {
     section.rooms.forEach(room => {
       delete states[room];
       updateRoomElement(room, "empty");
+      broadcastEvent("room_change", { room: room, status: "empty" });
     });
   });
 
@@ -1506,17 +1742,19 @@ function updateSummary() {
 }
 
 /* =====================================================
-   DATE
+   DATE DISPLAY
    ===================================================== */
-document.getElementById("date").textContent = new Date().toLocaleDateString(
-  "cs-CZ",
-  {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  }
-);
+function updateDateDisplay() {
+  document.getElementById("date").textContent = new Date().toLocaleDateString(
+    "cs-CZ",
+    {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    }
+  );
+}
 
 </script>
 </body>
