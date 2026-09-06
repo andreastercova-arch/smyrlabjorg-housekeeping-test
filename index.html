@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -254,7 +254,7 @@ button {
   border: 1px solid #ccc;
   background: white;
   font-weight: normal;
-  max-width: 150px;
+  max-width: 155px;
 }
 
 .btn-finish-corridor {
@@ -648,13 +648,13 @@ button {
 <body>
 
 <!-- TOAST ALERT -->
-<div id="toast">🔔 Pokoj 101: Check-out</div>
+<div id="toast">Room 101 - Check out</div>
 
 <!-- LOGIN OVERLAY -->
 <div id="loginOverlay">
   <div class="login-card">
     <div class="login-title">Smyrlabjörg</div>
-    <div class="login-subtitle">Přihlášení na tomto telefonu (zadejte PIN)</div>
+    <div class="login-subtitle">Sign in to this device (enter PIN)</div>
 
     <div class="pin-display">
       <div class="pin-dot" id="dot-0"></div>
@@ -686,13 +686,13 @@ button {
   <div class="header-top">
     <div>
       <div class="title-row">
-        <span class="conn-dot" id="connDot" title="Připojeno"></span>
+        <span class="conn-dot" id="connDot" title="Connected"></span>
         <div class="title">Housekeeping TEST</div>
       </div>
       <div class="header-user-row">
-        <span class="user-badge" id="currentUserBadge">👤 Přihlašování...</span>
+        <span class="user-badge" id="currentUserBadge">👤 Signing in...</span>
         <span id="shiftControls"></span>
-        <button class="logout-btn" onclick="logout()">Odhlásit</button>
+        <button class="logout-btn" onclick="logout()">Log out</button>
       </div>
       <div class="date" id="date"></div>
     </div>
@@ -735,7 +735,7 @@ button {
     </div>
     <div class="legend-item">
       <span class="legend-dot dot-done"></span>
-      🔵 Finish
+      🔵 Clean room
     </div>
   </div>
 </div>
@@ -745,11 +745,13 @@ button {
 <script>
 
 /* =====================================================
-   PWA SERVICE WORKER REGISTRATION
+   PWA SERVICE WORKER REGISTRATION (AUTO-UPDATING)
    ===================================================== */
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(err => {
+    navigator.serviceWorker.register("./sw.js?v=2").then(reg => {
+      reg.update();
+    }).catch(err => {
       console.warn("ServiceWorker registration failed:", err);
     });
   });
@@ -821,8 +823,8 @@ const sections = [
    ===================================================== */
 let states = {};
 let currentWorker = null;      // { name, pin, role }
-let allWorkers = [];           // Všichni pracovníci
-let todayAttendance = [];      // Pracovníci, kteří dnes začali směnu: ['Anna', 'Dominik']
+let allWorkers = [];           // All workers
+let todayAttendance = [];      // Workers who checked in today: ['Anna', 'Dominik']
 let corridorAssignments = {};  // { "CORRIDOR 1": "Dominik" }
 let currentMenuRoom = null;
 let currentMenuRoomElement = null;
@@ -877,9 +879,9 @@ function showToast(text) {
 function setConnectionStatus(status) {
   const dot = document.getElementById("connDot");
   dot.className = "conn-dot " + status;
-  if (status === "online") dot.title = "Připojeno k serveru";
-  else if (status === "reconnecting") dot.title = "Obnovuji spojení...";
-  else dot.title = "Odpojeno od serveru";
+  if (status === "online") dot.title = "Connected to server";
+  else if (status === "reconnecting") dot.title = "Reconnecting...";
+  else dot.title = "Disconnected from server";
 }
 
 /* =====================================================
@@ -936,7 +938,7 @@ document.addEventListener("keydown", (e) => {
 });
 
 async function verifyPin() {
-  document.getElementById("loginError").textContent = "Ověřuji...";
+  document.getElementById("loginError").textContent = "Verifying...";
 
   const { data, error } = await window.supabaseClient
     .from("workers")
@@ -945,12 +947,11 @@ async function verifyPin() {
     .single();
 
   if (error || !data) {
-    document.getElementById("loginError").textContent = "Nesprávný PIN!";
+    document.getElementById("loginError").textContent = "Incorrect PIN!";
     setTimeout(clearPin, 600);
     return;
   }
 
-  // Uloží se trvale do paměti telefonu – uživatel se už znovu nemusí přihlašovat!
   currentWorker = data;
   localStorage.setItem("hk_worker", JSON.stringify(data));
 
@@ -978,7 +979,7 @@ function checkSavedLogin() {
 }
 
 function logout() {
-  if (confirm("Opravdu chcete zrušit přihlášení na tomto telefonu?")) {
+  if (confirm("Are you sure you want to log out from this device?")) {
     localStorage.removeItem("hk_worker");
     currentWorker = null;
     enteredPin = "";
@@ -990,7 +991,7 @@ function logout() {
 }
 
 /* =====================================================
-   SHIFTS & ATTENDANCE (ČISTÝ STŮL KAŽDÝ DEN)
+   SHIFTS & ATTENDANCE (CLEAN SLATE EVERY DAY)
    ===================================================== */
 function isWorkerOnShift(workerName) {
   return todayAttendance.includes(workerName);
@@ -1018,14 +1019,13 @@ async function startShift() {
       logged_in_at: new Date().toISOString()
     }, { onConflict: "date,worker_name" });
 
-  // Bleskové odeslání informace ostatním
   broadcastEvent("attendance_change", { worker: currentWorker.name, action: "start" });
-  showToast(`🟢 Směna zahájena! Přejeme hezký den.`);
+  showToast(`🟢 Shift started! Have a great day.`);
 }
 
 async function endShift() {
   if (!currentWorker) return;
-  if (!confirm("Chcete ukončit dnešní směnu?")) return;
+  if (!confirm("Are you sure you want to end today's shift?")) return;
 
   todayAttendance = todayAttendance.filter(w => w !== currentWorker.name);
   updateUserHeader();
@@ -1038,7 +1038,7 @@ async function endShift() {
     .eq("worker_name", currentWorker.name);
 
   broadcastEvent("attendance_change", { worker: currentWorker.name, action: "end" });
-  showToast(`Směna ukončena.`);
+  showToast(`Shift ended.`);
 }
 
 function updateUserHeader() {
@@ -1047,32 +1047,32 @@ function updateUserHeader() {
 
   if (currentWorker) {
     let roleText = "";
-    if (currentWorker.role === "admin") roleText = " (Správce)";
-    else if (currentWorker.role === "manager") roleText = " (Vedoucí)";
-    else if (currentWorker.role === "reception") roleText = " (Recepce)";
+    if (currentWorker.role === "admin") roleText = " (Admin)";
+    else if (currentWorker.role === "manager") roleText = " (Manager)";
+    else if (currentWorker.role === "reception") roleText = " (Reception)";
     badge.textContent = "👤 " + currentWorker.name + roleText;
 
     if (currentWorker.role === "cleaner") {
       const onShift = isCurrentWorkerOnShift();
       if (onShift) {
         shiftContainer.innerHTML = `
-          <button class="shift-btn active">✔ Na směně</button>
-          <span class="shift-end-link" onclick="endShift()">Ukončit</span>
+          <button class="shift-btn active">✔ On shift</button>
+          <span class="shift-end-link" onclick="endShift()">End shift</span>
         `;
       } else {
         shiftContainer.innerHTML = `
-          <button class="shift-btn start" onclick="startShift()">🟢 Začít směnu</button>
+          <button class="shift-btn start" onclick="startShift()">🟢 Start shift</button>
         `;
       }
     } else if (currentWorker.role === "manager" || currentWorker.role === "admin") {
       shiftContainer.innerHTML = `
-        <span class="attendance-badge">👥 Na směně: ${todayAttendance.length}</span>
+        <span class="attendance-badge">👥 On shift: ${todayAttendance.length}</span>
       `;
     } else {
       shiftContainer.innerHTML = "";
     }
   } else {
-    badge.textContent = "👤 Nepřihlášen";
+    badge.textContent = "👤 Not signed in";
     shiftContainer.innerHTML = "";
   }
 }
@@ -1085,7 +1085,7 @@ function getTodayString() {
 function checkDateRollover() {
   const today = getTodayString();
   if (today !== lastActiveDate) {
-    console.log("Půlnoční přechod na nový den: čistý stůl!");
+    console.log("Midnight transition: new day clean slate!");
     lastActiveDate = today;
     updateDateDisplay();
     reconnectAndSync();
@@ -1093,11 +1093,11 @@ function checkDateRollover() {
 }
 
 /* =====================================================
-   WAKE-UP RESILIENCE (OCHRANA PROTI USNUTE RECEPCI)
+   WAKE-UP RESILIENCE & PERIODIC AUTO-SYNC
    ===================================================== */
 async function handleWakeUp() {
   if (document.visibilityState === "visible") {
-    console.log("Aplikace probuzena ze spánku, prověřuji spojení...");
+    console.log("App resumed from background, checking connection...");
     setConnectionStatus("reconnecting");
     checkDateRollover();
     await reconnectAndSync();
@@ -1106,7 +1106,40 @@ async function handleWakeUp() {
 
 document.addEventListener("visibilitychange", handleWakeUp);
 window.addEventListener("focus", handleWakeUp);
-setInterval(checkDateRollover, 30000); // Kontrola nového dne každých 30 vteřin
+setInterval(checkDateRollover, 30000);
+
+// Polling fallback every 6 seconds when screen is active: guarantees sync even if WebSocket hiccups!
+setInterval(async () => {
+  if (document.visibilityState === "visible") {
+    await silentSyncRooms();
+  }
+}, 6000);
+
+async function silentSyncRooms() {
+  try {
+    const { data, error } = await window.supabaseClient
+      .from("rooms")
+      .select("room_number,status");
+
+    if (!error && data) {
+      let changed = false;
+      data.forEach(room => {
+        const current = states[room.room_number] || "empty";
+        const incoming = (room.status && room.status !== "empty") ? room.status : "empty";
+        if (current !== incoming) {
+          changed = true;
+          if (incoming === "empty") delete states[room.room_number];
+          else states[room.room_number] = incoming;
+          updateRoomElement(room.room_number, incoming);
+        }
+      });
+      if (changed) updateSummary();
+      setConnectionStatus("online");
+    }
+  } catch(e) {
+    // silent
+  }
+}
 
 async function reconnectAndSync() {
   setConnectionStatus("reconnecting");
@@ -1120,7 +1153,7 @@ async function reconnectAndSync() {
     render();
     setConnectionStatus("online");
   } catch (err) {
-    console.warn("Chyba při synchronizaci po probuzení:", err);
+    console.warn("Error reconnecting after wake-up:", err);
     setConnectionStatus("offline");
   }
 }
@@ -1229,12 +1262,11 @@ async function loadRooms() {
 }
 
 /* =====================================================
-   UPDATE ONE ROOM (BLESKOVÉ VYSÍLÁNÍ BROADCAST)
+   UPDATE ONE ROOM (BROADCAST + POSTGRES)
    ===================================================== */
 async function updateRoom(room, status) {
   const previousStatus = states[room] || "empty";
 
-  // 1. Okamžitý lokální update (0 ms)
   if (status === "empty") {
     delete states[room];
   } else {
@@ -1242,10 +1274,8 @@ async function updateRoom(room, status) {
   }
   updateRoomElement(room, status);
 
-  // 2. Bleskové vysílání do ostatních telefonů (50–100 ms)
   broadcastEvent("room_change", { room: room, status: status });
 
-  // 3. Trvalý zápis do databáze
   const { error } = await window.supabaseClient
     .from("rooms")
     .update({
@@ -1256,12 +1286,11 @@ async function updateRoom(room, status) {
 
   if (error) {
     console.error("Update error:", error);
-    // Rollback při chybě
     if (previousStatus === "empty") delete states[room];
     else states[room] = previousStatus;
     updateRoomElement(room, previousStatus);
     broadcastEvent("room_change", { room: room, status: previousStatus });
-    alert("Chyba: Změnu pokoje se nepodařilo uložit do databáze.");
+    alert("Error: Could not save room change to database.");
     return false;
   }
 
@@ -1288,7 +1317,6 @@ function setupRealtime() {
     .channel("rooms-live-channel", {
       config: { broadcast: { self: false } }
     })
-    // 1. Blesková odezva přes Broadcast (< 100 ms)
     .on("broadcast", { event: "room_change" }, (payload) => {
       const { room, status } = payload.payload;
       const oldStatus = states[room] || "empty";
@@ -1309,7 +1337,6 @@ function setupRealtime() {
       await loadAssignments();
       render();
     })
-    // 2. Záložní synchronizace přes databázový log (PostgreSQL)
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "rooms" },
@@ -1369,11 +1396,11 @@ function handleCheckoutNotification(room) {
 
   if (isMine || isPrivileged) {
     playCheckoutChime();
-    showToast(`🔔 Pokoj ${room} má Check-out! (${targetSection.name})`);
+    showToast(`Room ${room} - Check out`);
 
     if ("Notification" in window && Notification.permission === "granted") {
-      new Notification(`Pokoj ${room}: Check-out`, {
-        body: `${targetSection.name} je připraven k úklidu!`,
+      new Notification(`Room ${room} - Check out`, {
+        body: `Room ${room} is ready for cleaning`,
         icon: "icon-192.png"
       });
     }
@@ -1388,14 +1415,14 @@ document.addEventListener("click", function requestNotifOnce() {
 }, { once: true });
 
 /* =====================================================
-   FINISH ALL CORRIDOR
+   CLEAN ALL CORRIDOR
    ===================================================== */
 async function finishCorridor(sectionName) {
   const section = sections.find(s => s.name === sectionName);
   if (!section) return;
 
   const confirmed = confirm(
-    `Nastavit všech ${section.rooms.length} pokojů v ${sectionName} na Finish (Hotovo)?`
+    `Set all ${section.rooms.length} rooms in ${sectionName} to Clean room?`
   );
 
   if (!confirmed) return;
@@ -1415,8 +1442,8 @@ async function finishCorridor(sectionName) {
     .in("room_number", section.rooms);
 
   if (error) {
-    console.error("Finish corridor error:", error);
-    alert("Chyba při hromadném uložení chodby.");
+    console.error("Clean corridor error:", error);
+    alert("Error saving corridor status.");
   }
 }
 
@@ -1448,17 +1475,16 @@ function render() {
     const isMine = isMyCorridor(section.name);
 
     if (canManage) {
-      // Roletka pro vedoucího – PŘEDNOSTNĚ ukazuje pracovníky, kteří dnes začali směnu!
       const select = document.createElement("select");
       select.className = "assign-select";
 
-      let optionsHtml = `<option value="">-- Volné --</option>`;
+      let optionsHtml = `<option value="">-- Unassigned --</option>`;
 
       const activeWorkers = allWorkers.filter(w => (w.role === "cleaner" || w.role === "manager") && todayAttendance.includes(w.name));
       const otherWorkers = allWorkers.filter(w => (w.role === "cleaner" || w.role === "manager") && !todayAttendance.includes(w.name));
 
       if (activeWorkers.length > 0) {
-        optionsHtml += `<optgroup label="🟢 Dnes v práci (${activeWorkers.length})">`;
+        optionsHtml += `<optgroup label="🟢 On shift today (${activeWorkers.length})">`;
         activeWorkers.forEach(w => {
           optionsHtml += `<option value="${w.name}" ${w.name === assignedName ? "selected" : ""}>🟢 ${w.name}</option>`;
         });
@@ -1466,7 +1492,7 @@ function render() {
       }
 
       if (otherWorkers.length > 0) {
-        optionsHtml += `<optgroup label="⚪ Ostatní (nemají směnu)">`;
+        optionsHtml += `<optgroup label="⚪ Others (off shift)">`;
         otherWorkers.forEach(w => {
           optionsHtml += `<option value="${w.name}" ${w.name === assignedName ? "selected" : ""}>${w.name}</option>`;
         });
@@ -1481,15 +1507,14 @@ function render() {
     } else {
       const badge = document.createElement("span");
       badge.className = "assigned-badge" + (isMine ? " my-corridor" : "");
-      badge.textContent = assignedName ? (isMine ? `👤 ${assignedName} (Moje)` : `👤 ${assignedName}`) : "— volné";
+      badge.textContent = assignedName ? (isMine ? `👤 ${assignedName} (Mine)` : `👤 ${assignedName}`) : "— unassigned";
       actionsDiv.appendChild(badge);
     }
 
-    // Tlačítko Finish all
     if (isMine || canManage) {
       const finishBtn = document.createElement("button");
       finishBtn.className = "btn-finish-corridor";
-      finishBtn.textContent = "✔ Finish all";
+      finishBtn.textContent = "✔ Clean all";
       finishBtn.onclick = () => finishCorridor(section.name);
       actionsDiv.appendChild(finishBtn);
     }
@@ -1553,7 +1578,7 @@ function openMenu(room, roomElement) {
       🟣 Stayover
     </button>
     <button class="menu-done" onclick="selectStatus('done', event)">
-      🔵 Finish
+      🔵 Clean room
     </button>
     <button class="menu-empty" onclick="selectStatus('empty', event)">
       ◻ Empty
@@ -1746,7 +1771,7 @@ function updateSummary() {
    ===================================================== */
 function updateDateDisplay() {
   document.getElementById("date").textContent = new Date().toLocaleDateString(
-    "cs-CZ",
+    "en-GB",
     {
       weekday: "long",
       day: "numeric",
