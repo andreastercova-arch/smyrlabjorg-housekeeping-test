@@ -1,11 +1,18 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<title>Housekeeping TEST</title>
+<title>Smyrlabjörg Housekeeping</title>
+
+<!-- PWA Meta Tags -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Housekeeping">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#ffffff">
 
 <style>
 
@@ -20,6 +27,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   background: #f4f5f7;
   color: #222;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* =====================================================
@@ -31,7 +39,7 @@ header {
   top: 0;
   z-index: 1000;
   background: white;
-  padding: 12px 14px;
+  padding: 10px 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
@@ -43,14 +51,43 @@ header {
 }
 
 .title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: bold;
 }
 
-.date {
-  font-size: 13px;
-  color: #777;
+.header-user-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-top: 3px;
+}
+
+.date {
+  font-size: 12px;
+  color: #777;
+}
+
+.user-badge {
+  font-size: 12px;
+  background: #e8f0fe;
+  color: #1967d2;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 11px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-weight: normal;
 }
 
 .header-buttons {
@@ -100,10 +137,63 @@ button {
   box-shadow: 0 2px 7px rgba(0,0,0,0.05);
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .section-title {
   font-size: 14px;
   font-weight: bold;
-  margin-bottom: 8px;
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.assigned-badge {
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: #f0f1f3;
+  color: #555;
+  font-weight: bold;
+}
+
+.assigned-badge.my-corridor {
+  background: #e6f4ea;
+  color: #137333;
+  border: 1px solid #ceead6;
+}
+
+.assign-select {
+  font-size: 11px;
+  padding: 2px 4px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background: white;
+  font-weight: normal;
+}
+
+.btn-finish-corridor {
+  background: #e8f0fe;
+  color: #1a73e8;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: bold;
+  border: 1px solid #d2e3fc;
+  cursor: pointer;
+}
+
+.btn-finish-corridor:active {
+  background: #d2e3fc;
 }
 
 /* =====================================================
@@ -119,19 +209,14 @@ button {
 .room {
   min-height: 54px;
   border-radius: 8px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   font-weight: bold;
   font-size: 13px;
-
   cursor: pointer;
   user-select: none;
-
   position: relative;
-
   transition: transform 0.08s ease;
 }
 
@@ -183,11 +268,8 @@ button {
   padding: 10px 12px;
   margin-top: 4px;
   margin-bottom: 10px;
-
   box-shadow: 0 2px 7px rgba(0,0,0,0.05);
-
   font-size: 13px;
-
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -207,13 +289,10 @@ button {
   padding: 10px 12px;
   margin-top: 4px;
   margin-bottom: 15px;
-
   box-shadow: 0 2px 7px rgba(0,0,0,0.05);
-
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-
   font-size: 12px;
 }
 
@@ -255,52 +334,29 @@ button {
    ===================================================== */
 
 #globalMenu {
-
   position: fixed !important;
-
   display: none;
-
   z-index: 2147483647 !important;
-
   background: white;
-
   border: 1px solid #d5d5d5;
-
   border-radius: 9px;
-
   padding: 5px;
-
   min-width: 145px;
-
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.25),
-    0 3px 10px rgba(0,0,0,0.18);
-
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25), 0 3px 10px rgba(0,0,0,0.18);
   overflow-y: auto;
-
   isolation: isolate;
 }
 
 #globalMenu button {
-
   display: block;
-
   width: 100%;
-
   text-align: left;
-
   background: white;
-
   color: #222;
-
   padding: 9px 10px;
-
   margin: 0;
-
   font-size: 13px;
-
   font-weight: normal;
-
   border-radius: 6px;
 }
 
@@ -333,17 +389,146 @@ button {
 }
 
 /* =====================================================
+   TOAST NOTIFICATION
+   ===================================================== */
+
+#toast {
+  position: fixed;
+  top: 75px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: #1e293b;
+  color: #ffffff;
+  padding: 10px 16px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: bold;
+  z-index: 3000;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* =====================================================
+   LOGIN OVERLAY
+   ===================================================== */
+
+#loginOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #f4f5f7;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-card {
+  background: white;
+  width: 100%;
+  max-width: 340px;
+  padding: 24px 20px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  text-align: center;
+}
+
+.login-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.login-subtitle {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.pin-display {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.pin-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #bbb;
+  background: white;
+  transition: all 0.15s ease;
+}
+
+.pin-dot.filled {
+  background: #1455a0;
+  border-color: #1455a0;
+}
+
+.pin-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.pin-btn {
+  height: 52px;
+  font-size: 20px;
+  font-weight: bold;
+  border-radius: 12px;
+  background: #f0f2f5;
+  color: #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.pin-btn:active {
+  background: #d8dde4;
+}
+
+.pin-btn.action {
+  font-size: 14px;
+  background: #e8eaee;
+}
+
+.login-error {
+  color: #d93025;
+  font-size: 13px;
+  margin-top: 10px;
+  min-height: 18px;
+  font-weight: bold;
+}
+
+/* =====================================================
    MOBILE
    ===================================================== */
 
 @media (max-width: 600px) {
 
   header {
-    padding: 10px;
+    padding: 8px 10px;
   }
 
   .title {
-    font-size: 19px;
+    font-size: 18px;
   }
 
   .main {
@@ -353,9 +538,12 @@ button {
   .section {
     padding: 8px;
   }
+
   .section-title {
-    margin-bottom: 4px;
+    font-size: 13px;
+    margin-bottom: 0;
   }
+
   .rooms {
     grid-template-columns: repeat(5, 1fr);
     gap: 5px;
@@ -368,10 +556,12 @@ button {
 
   .summary {
     gap: 8px;
+    font-size: 12px;
   }
 
   .legend {
     gap: 6px;
+    font-size: 11px;
   }
 
 }
@@ -379,286 +569,503 @@ button {
 </style>
 </head>
 
-
 <body>
 
+<!-- TOAST ALERT -->
+<div id="toast">🔔 Pokoj 101: Check-out</div>
+
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay">
+  <div class="login-card">
+    <div class="login-title">Smyrlabjörg</div>
+    <div class="login-subtitle">Zadejte svůj 4místný PIN</div>
+
+    <div class="pin-display">
+      <div class="pin-dot" id="dot-0"></div>
+      <div class="pin-dot" id="dot-1"></div>
+      <div class="pin-dot" id="dot-2"></div>
+      <div class="pin-dot" id="dot-3"></div>
+    </div>
+
+    <div class="pin-keypad">
+      <button class="pin-btn" onclick="pressPin('1')">1</button>
+      <button class="pin-btn" onclick="pressPin('2')">2</button>
+      <button class="pin-btn" onclick="pressPin('3')">3</button>
+      <button class="pin-btn" onclick="pressPin('4')">4</button>
+      <button class="pin-btn" onclick="pressPin('5')">5</button>
+      <button class="pin-btn" onclick="pressPin('6')">6</button>
+      <button class="pin-btn" onclick="pressPin('7')">7</button>
+      <button class="pin-btn" onclick="pressPin('8')">8</button>
+      <button class="pin-btn" onclick="pressPin('9')">9</button>
+      <button class="pin-btn action" onclick="clearPin()">C</button>
+      <button class="pin-btn" onclick="pressPin('0')">0</button>
+      <button class="pin-btn action" onclick="backspacePin()">⌫</button>
+    </div>
+
+    <!-- Skrytý vstup pro podporu fyzických klávesnic na počítači -->
+    <input type="password" id="pinInputHidden" maxlength="4" style="position: absolute; opacity: 0; pointer-events: none;" />
+
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
 <header>
-
   <div class="header-top">
-
     <div>
       <div class="title">Housekeeping TEST</div>
+      <div class="header-user-row">
+        <span class="user-badge" id="currentUserBadge">👤 Přihlašování...</span>
+        <button class="logout-btn" onclick="logout()">Odhlásit</button>
+      </div>
       <div class="date" id="date"></div>
     </div>
 
     <div class="header-buttons">
-
       <button class="occupied-all" onclick="occupiedAll()">
         🔴 Occupied all
       </button>
-
       <button class="reset" onclick="resetAll()">
         Reset all
       </button>
-
     </div>
-
   </div>
-
 </header>
 
-
 <div class="main">
-
   <!-- ROOMS -->
-
   <div id="app"></div>
 
-
   <!-- SUMMARY -->
-
   <div class="summary" id="summary"></div>
 
-
   <!-- LEGEND -->
-
   <div class="legend">
-
     <div class="legend-item">
       <span class="legend-dot dot-occupied"></span>
       🔴 Occupied
     </div>
-
     <div class="legend-item">
       <span class="legend-dot dot-checkout"></span>
       🟢 Check out
     </div>
-
     <div class="legend-item">
       <span class="legend-dot dot-cleaning"></span>
       🟠 Cleaning
     </div>
-
     <div class="legend-item">
       <span class="legend-dot dot-stayover"></span>
       🟣 Stayover
     </div>
-
     <div class="legend-item">
       <span class="legend-dot dot-done"></span>
       🔵 Finish
     </div>
-
   </div>
-
 </div>
 
-
 <div id="globalMenu"></div>
-
 
 <script>
 
 /* =====================================================
-   SUPABASE TEST CONNECTION
+   PWA SERVICE WORKER REGISTRATION
    ===================================================== */
-
-const SUPABASE_URL =
-  "https://pvsrwvxagjriuigziuxv.supabase.co";
-
-const SUPABASE_KEY =
-  "sb_publishable_L1YYmsLb2xCxGzW5T6_sOA_jMaehfG-";
-
-
-const script =
-  document.createElement("script");
-
-script.src =
-  "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-
-script.onload = function() {
-
-  window.supabaseClient =
-    window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
-
-  startApp();
-
-};
-
-document.head.appendChild(script);
-
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(err => {
+      console.warn("ServiceWorker registration failed:", err);
+    });
+  });
+}
 
 /* =====================================================
-   ROOMS
+   SCROLL POSITION MEMORY
    ===================================================== */
+window.addEventListener("scroll", () => {
+  sessionStorage.setItem("hk_scroll_pos", window.scrollY);
+}, { passive: true });
 
+function restoreScrollPosition() {
+  const pos = sessionStorage.getItem("hk_scroll_pos");
+  if (pos !== null) {
+    window.scrollTo({ top: parseInt(pos, 10), behavior: "instant" });
+  }
+}
+
+/* =====================================================
+   SUPABASE CONNECTION
+   ===================================================== */
+const SUPABASE_URL = "https://pvsrwvxagjriuigziuxv.supabase.co";
+const SUPABASE_KEY = "sb_publishable_L1YYmsLb2xCxGzW5T6_sOA_jMaehfG-";
+
+const script = document.createElement("script");
+script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+script.onload = function() {
+  window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  initApp();
+};
+document.head.appendChild(script);
+
+/* =====================================================
+   ROOMS DEFINITION
+   ===================================================== */
 const sections = [
-
   {
     name: "LUXURY 3–10",
     rooms: [3,4,5,6,7,8,9,10]
   },
-
   {
     name: "CORRIDOR 1",
     rooms: [101,102,103,104,105,106,107,108,109,110]
   },
-
   {
     name: "CORRIDOR 2",
     rooms: [111,112,113,114,115,116,117,118,119,120]
   },
-
   {
     name: "CORRIDOR 3",
     rooms: [121,122,123,124,125,126,127,128,129,130,131,132]
   },
-
   {
     name: "CORRIDOR 4",
     rooms: [133,134,135,136,137,138,139,140,141,142,143,144,145,146]
   },
-
   {
     name: "CORRIDOR 5",
     rooms: [147,148,149,150,151,152,153,154,155,156,157,158,159,160]
   }
-
 ];
-
 
 /* =====================================================
    STATE
    ===================================================== */
-
 let states = {};
-
+let currentWorker = null; // { name, pin, role }
+let allWorkers = [];      // Seznam pracovníků z DB
+let corridorAssignments = {}; // { "CORRIDOR 1": "Dominik" }
 let currentMenuRoom = null;
-
 let currentMenuRoomElement = null;
-
+let enteredPin = "";
+let initialRenderDone = false;
 
 /* =====================================================
-   START
+   AUDIO CHIME FOR CHECKOUT
    ===================================================== */
+function playCheckoutChime() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
 
-async function startApp() {
+    // První tón (D5 - 587 Hz)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(587.33, now);
+    gain1.gain.setValueAtTime(0.25, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.35);
 
-  await loadRooms();
-
-  render();
-
-  setupRealtime();
-
+    // Druhý tón (A5 - 880 Hz - jasné cinknutí)
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(880, now + 0.12);
+    gain2.gain.setValueAtTime(0.3, now + 0.12);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.12);
+    osc2.stop(now + 0.7);
+  } catch (e) {
+    console.warn("Audio chime prevented by browser policy:", e);
+  }
 }
 
+function showToast(text) {
+  const toast = document.getElementById("toast");
+  toast.textContent = text;
+  toast.classList.add("show");
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 4500);
+}
+
+/* =====================================================
+   LOGIN / PIN SYSTEM
+   ===================================================== */
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById("dot-" + i);
+    if (i < enteredPin.length) {
+      dot.classList.add("filled");
+    } else {
+      dot.classList.remove("filled");
+    }
+  }
+}
+
+function pressPin(digit) {
+  if (enteredPin.length < 4) {
+    enteredPin += digit;
+    updatePinDots();
+    document.getElementById("loginError").textContent = "";
+
+    if (enteredPin.length === 4) {
+      setTimeout(verifyPin, 100);
+    }
+  }
+}
+
+function clearPin() {
+  enteredPin = "";
+  updatePinDots();
+  document.getElementById("loginError").textContent = "";
+}
+
+function backspacePin() {
+  if (enteredPin.length > 0) {
+    enteredPin = enteredPin.slice(0, -1);
+    updatePinDots();
+    document.getElementById("loginError").textContent = "";
+  }
+}
+
+// Podpora pro fyzickou klávesnici
+document.addEventListener("keydown", (e) => {
+  const overlay = document.getElementById("loginOverlay");
+  if (overlay.style.display !== "none") {
+    if (e.key >= "0" && e.key <= "9") {
+      pressPin(e.key);
+    } else if (e.key === "Backspace") {
+      backspacePin();
+    } else if (e.key === "Escape" || e.key === "c" || e.key === "C") {
+      clearPin();
+    }
+  }
+});
+
+async function verifyPin() {
+  document.getElementById("loginError").textContent = "Ověřuji...";
+
+  const { data, error } = await window.supabaseClient
+    .from("workers")
+    .select("*")
+    .eq("pin", enteredPin)
+    .single();
+
+  if (error || !data) {
+    document.getElementById("loginError").textContent = "Nesprávný PIN!";
+    setTimeout(clearPin, 600);
+    return;
+  }
+
+  // Úspěšné přihlášení
+  currentWorker = data;
+  localStorage.setItem("hk_worker", JSON.stringify(data));
+
+  // Zápis do ranní docházky
+  await window.supabaseClient
+    .from("worker_attendance")
+    .upsert({
+      date: getTodayString(),
+      worker_name: currentWorker.name,
+      logged_in_at: new Date().toISOString()
+    }, { onConflict: "date,worker_name" });
+
+  document.getElementById("loginOverlay").style.display = "none";
+  updateUserHeader();
+  await loadAssignments();
+  render();
+}
+
+function checkSavedLogin() {
+  const saved = localStorage.getItem("hk_worker");
+  if (saved) {
+    try {
+      currentWorker = JSON.parse(saved);
+      document.getElementById("loginOverlay").style.display = "none";
+      updateUserHeader();
+      return true;
+    } catch(e) {
+      localStorage.removeItem("hk_worker");
+    }
+  }
+  document.getElementById("loginOverlay").style.display = "flex";
+  return false;
+}
+
+function logout() {
+  if (confirm("Opravdu se chcete odhlásit?")) {
+    localStorage.removeItem("hk_worker");
+    currentWorker = null;
+    enteredPin = "";
+    updatePinDots();
+    document.getElementById("loginOverlay").style.display = "flex";
+    updateUserHeader();
+    render();
+  }
+}
+
+function updateUserHeader() {
+  const badge = document.getElementById("currentUserBadge");
+  if (currentWorker) {
+    let roleText = "";
+    if (currentWorker.role === "admin") roleText = " (Správce)";
+    else if (currentWorker.role === "manager") roleText = " (Vedoucí)";
+    else if (currentWorker.role === "reception") roleText = " (Recepce)";
+    badge.textContent = "👤 " + currentWorker.name + roleText;
+  } else {
+    badge.textContent = "👤 Nepřihlášen";
+  }
+}
+
+function getTodayString() {
+  const d = new Date();
+  return d.toISOString().split("T")[0];
+}
+
+/* =====================================================
+   INIT APP
+   ===================================================== */
+async function initApp() {
+  checkSavedLogin();
+  await loadWorkers();
+  await loadAssignments();
+  await loadRooms();
+  render();
+  setupRealtime();
+  setupAssignmentsRealtime();
+  restoreScrollPosition();
+}
+
+/* =====================================================
+   LOAD WORKERS & ASSIGNMENTS
+   ===================================================== */
+async function loadWorkers() {
+  const { data, error } = await window.supabaseClient
+    .from("workers")
+    .select("name,role")
+    .order("name");
+
+  if (!error && data) {
+    allWorkers = data;
+  }
+}
+
+async function loadAssignments() {
+  const { data, error } = await window.supabaseClient
+    .from("corridor_assignments")
+    .select("corridor_name,worker_name")
+    .eq("date", getTodayString());
+
+  if (!error && data) {
+    corridorAssignments = {};
+    data.forEach(item => {
+      corridorAssignments[item.corridor_name] = item.worker_name;
+    });
+  }
+}
+
+async function assignCorridor(corridorName, workerName) {
+  corridorAssignments[corridorName] = workerName;
+  render();
+
+  await window.supabaseClient
+    .from("corridor_assignments")
+    .upsert({
+      date: getTodayString(),
+      corridor_name: corridorName,
+      worker_name: workerName,
+      updated_at: new Date().toISOString()
+    }, { onConflict: "date,corridor_name" });
+}
+
+function isMyCorridor(corridorName) {
+  if (!currentWorker) return false;
+  return corridorAssignments[corridorName] === currentWorker.name;
+}
+
+function isManagerOrAdmin() {
+  return currentWorker && (currentWorker.role === "manager" || currentWorker.role === "admin");
+}
 
 /* =====================================================
    LOAD ROOMS FROM SUPABASE
    ===================================================== */
-
 async function loadRooms() {
-
-  const {
-    data,
-    error
-  } =
-    await window.supabaseClient
-      .from("rooms")
-      .select("room_number,status");
-
+  const { data, error } = await window.supabaseClient
+    .from("rooms")
+    .select("room_number,status");
 
   if (error) {
-
-    console.error(
-      "Supabase error:",
-      error
-    );
-
-    alert(
-      "Could not connect to the database."
-    );
-
+    console.error("Supabase error:", error);
+    alert("Could not connect to the database.");
     return;
-
   }
 
-
   states = {};
-
-
   data.forEach(room => {
-
-    if (
-      room.status &&
-      room.status !== "empty"
-    ) {
-
-      states[
-        room.room_number
-      ] = room.status;
-
+    if (room.status && room.status !== "empty") {
+      states[room.room_number] = room.status;
     }
-
   });
-
 }
-
 
 /* =====================================================
    UPDATE ONE ROOM
    ===================================================== */
+async function updateRoom(room, status) {
+  const previousStatus = states[room] || "empty";
 
-async function updateRoom(
-  room,
-  status
-) {
+  // Optimistický lokální update
+  if (status === "empty") {
+    delete states[room];
+  } else {
+    states[room] = status;
+  }
+  updateRoomElement(room, status);
 
-  const {
-    error
-  } =
-    await window.supabaseClient
-      .from("rooms")
-      .update({
-        status: status,
-        updated_at: new Date().toISOString()
-      })
-      .eq(
-        "room_number",
-        room
-      );
-
+  const { error } = await window.supabaseClient
+    .from("rooms")
+    .update({
+      status: status,
+      updated_at: new Date().toISOString()
+    })
+    .eq("room_number", room);
 
   if (error) {
-
-    console.error(
-      "Update error:",
-      error
-    );
-
-    alert(
-      "Could not save the room status."
-    );
-
+    console.error("Update error:", error);
+    // Rollback při chybě
+    if (previousStatus === "empty") delete states[room];
+    else states[room] = previousStatus;
+    updateRoomElement(room, previousStatus);
+    alert("Chyba: Změnu pokoje se nepodařilo uložit do databáze.");
     return false;
-
   }
 
-
   return true;
-
 }
 
+/* =====================================================
+   IN-PLACE ROOM ELEMENT UPDATE (PREVENTS SCROLL JUMPS)
+   ===================================================== */
+function updateRoomElement(room, status) {
+  const el = document.getElementById("room-" + room);
+  if (el) {
+    el.className = "room " + (status || "empty");
+  }
+  updateSummary();
+}
 
 /* =====================================================
    REALTIME
    ===================================================== */
-
 function setupRealtime() {
-
   window.supabaseClient
     .channel("rooms-live-test")
     .on(
@@ -669,784 +1076,448 @@ function setupRealtime() {
         table: "rooms"
       },
       function(payload) {
+        console.log("Realtime update:", payload);
 
-        console.log(
-          "Realtime update:",
-          payload
-        );
-
-
-        if (
-          payload.eventType ===
-          "DELETE"
-        ) {
-
-          delete states[
-            payload.old.room_number
-          ];
-
+        if (payload.eventType === "DELETE") {
+          const room = payload.old.room_number;
+          delete states[room];
+          updateRoomElement(room, "empty");
         } else {
+          const room = payload.new.room_number;
+          const newStatus = payload.new.status;
+          const oldStatus = states[room] || "empty";
 
-          const room =
-            payload.new.room_number;
-
-          const status =
-            payload.new.status;
-
-
-          if (
-            status === "empty"
-          ) {
-
+          if (newStatus === "empty") {
             delete states[room];
-
           } else {
-
-            states[room] =
-              status;
-
+            states[room] = newStatus;
           }
 
+          // CÍLENÉ UPOZORNĚNÍ NA CHECK-OUT
+          if (newStatus === "checkout" && oldStatus !== "checkout") {
+            handleCheckoutNotification(room);
+          }
+
+          updateRoomElement(room, newStatus);
         }
-
-
-        render();
-
       }
     )
     .subscribe();
-
 }
 
+function setupAssignmentsRealtime() {
+  window.supabaseClient
+    .channel("assignments-live")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "corridor_assignments"
+      },
+      function(payload) {
+        if (payload.new && payload.new.date === getTodayString()) {
+          corridorAssignments[payload.new.corridor_name] = payload.new.worker_name;
+          render();
+        }
+      }
+    )
+    .subscribe();
+}
+
+function handleCheckoutNotification(room) {
+  // Zjistíme, do kterého koridoru pokoj patří
+  let targetSection = null;
+  for (const sec of sections) {
+    if (sec.rooms.includes(room)) {
+      targetSection = sec;
+      break;
+    }
+  }
+
+  if (!targetSection) return;
+
+  const assignedWorker = corridorAssignments[targetSection.name];
+
+  // Podmínka: Upozornění zazní pouze tomu, komu koridor patří (nebo recepci/vedoucímu)
+  const isMine = currentWorker && (assignedWorker === currentWorker.name);
+  const isPrivileged = currentWorker && (currentWorker.role === "manager" || currentWorker.role === "admin" || currentWorker.role === "reception");
+
+  if (isMine || isPrivileged) {
+    playCheckoutChime();
+    showToast(`🔔 Pokoj ${room} má Check-out! (${targetSection.name})`);
+
+    // Systémová notifikace na mobilu
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification(`Pokoj ${room}: Check-out`, {
+        body: `${targetSection.name} je připraven k úklidu!`,
+        icon: "icon-192.png"
+      });
+    }
+  }
+}
+
+// Vyžádání práv na notifikace při prvním kliknutí kamkoliv
+document.addEventListener("click", function requestNotifOnce() {
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+  document.removeEventListener("click", requestNotifOnce);
+}, { once: true });
+
+/* =====================================================
+   FINISH ALL CORRIDOR
+   ===================================================== */
+async function finishCorridor(sectionName) {
+  const section = sections.find(s => s.name === sectionName);
+  if (!section) return;
+
+  const confirmed = confirm(
+    `Nastavit všech ${section.rooms.length} pokojů v ${sectionName} na Finish (Hotovo)?`
+  );
+
+  if (!confirmed) return;
+
+  // Optimisticky nastavíme lokálně
+  section.rooms.forEach(room => {
+    states[room] = "done";
+    updateRoomElement(room, "done");
+  });
+
+  // Hromadný zápis do Supabase
+  const { error } = await window.supabaseClient
+    .from("rooms")
+    .update({
+      status: "done",
+      updated_at: new Date().toISOString()
+    })
+    .in("room_number", section.rooms);
+
+  if (error) {
+    console.error("Finish corridor error:", error);
+    alert("Chyba při hromadném uložení chodby.");
+  }
+}
 
 /* =====================================================
    RENDER
    ===================================================== */
-
 function render() {
-
-  const app =
-    document.getElementById("app");
-
+  const app = document.getElementById("app");
   app.innerHTML = "";
 
+  const canManage = isManagerOrAdmin();
 
-  sections.forEach(
-    section => {
+  sections.forEach(section => {
+    const sectionDiv = document.createElement("div");
+    sectionDiv.className = "section";
 
-      const sectionDiv =
-        document.createElement("div");
+    // Hlavička koridoru
+    const headerDiv = document.createElement("div");
+    headerDiv.className = "section-header";
 
-      sectionDiv.className =
-        "section";
+    const title = document.createElement("div");
+    title.className = "section-title";
+    title.textContent = section.name;
+    headerDiv.appendChild(title);
 
+    const actionsDiv = document.createElement("div");
+    actionsDiv.className = "section-actions";
 
-      const title =
-        document.createElement("div");
+    const assignedName = corridorAssignments[section.name] || "";
+    const isMine = isMyCorridor(section.name);
 
-      title.className =
-        "section-title";
+    if (canManage) {
+      // Roletka pro vedoucího / správce pro snadné přiřazení
+      const select = document.createElement("select");
+      select.className = "assign-select";
+      select.innerHTML = `<option value="">-- Nepřiřazeno --</option>` +
+        allWorkers
+          .filter(w => w.role === "cleaner" || w.role === "manager")
+          .map(w => `<option value="${w.name}" ${w.name === assignedName ? "selected" : ""}>${w.name}</option>`)
+          .join("");
 
-      title.textContent =
-        section.name;
-
-
-      const roomsDiv =
-        document.createElement("div");
-
-      roomsDiv.className =
-        "rooms";
-
-
-      section.rooms.forEach(
-        room => {
-
-          const roomDiv =
-            document.createElement("div");
-
-
-          roomDiv.className =
-            "room " +
-            (states[room] ||
-            "empty");
-
-
-          roomDiv.textContent =
-            room;
-
-
-          roomDiv.addEventListener(
-            "click",
-            function(event) {
-
-              event.stopPropagation();
-
-              openMenu(
-                room,
-                roomDiv
-              );
-
-            }
-          );
-
-
-          roomsDiv.appendChild(
-            roomDiv
-          );
-
-        }
-      );
-
-
-      sectionDiv.appendChild(
-        title
-      );
-
-      sectionDiv.appendChild(
-        roomsDiv
-      );
-
-      app.appendChild(
-        sectionDiv
-      );
-
+      select.addEventListener("change", (e) => {
+        assignCorridor(section.name, e.target.value);
+      });
+      actionsDiv.appendChild(select);
+    } else {
+      // Štítek se jménem pro pokojské a recepci
+      const badge = document.createElement("span");
+      badge.className = "assigned-badge" + (isMine ? " my-corridor" : "");
+      badge.textContent = assignedName ? (isMine ? `👤 ${assignedName} (Moje)` : `👤 ${assignedName}`) : "— volné";
+      actionsDiv.appendChild(badge);
     }
-  );
 
+    // Tlačítko Finish all u koridoru
+    if (isMine || canManage) {
+      const finishBtn = document.createElement("button");
+      finishBtn.className = "btn-finish-corridor";
+      finishBtn.textContent = "✔ Finish all";
+      finishBtn.onclick = () => finishCorridor(section.name);
+      actionsDiv.appendChild(finishBtn);
+    }
+
+    headerDiv.appendChild(actionsDiv);
+    sectionDiv.appendChild(headerDiv);
+
+    // Mřížka pokojů
+    const roomsDiv = document.createElement("div");
+    roomsDiv.className = "rooms";
+
+    section.rooms.forEach(room => {
+      const roomDiv = document.createElement("div");
+      roomDiv.id = "room-" + room;
+      roomDiv.className = "room " + (states[room] || "empty");
+      roomDiv.textContent = room;
+
+      roomDiv.addEventListener("click", function(event) {
+        event.stopPropagation();
+        openMenu(room, roomDiv);
+      });
+
+      roomsDiv.appendChild(roomDiv);
+    });
+
+    sectionDiv.appendChild(roomsDiv);
+    app.appendChild(sectionDiv);
+  });
 
   updateSummary();
 
+  if (!initialRenderDone) {
+    initialRenderDone = true;
+    restoreScrollPosition();
+  }
 }
-
 
 /* =====================================================
    OPEN MENU
    ===================================================== */
+function openMenu(room, roomElement) {
+  currentMenuRoom = room;
+  currentMenuRoomElement = roomElement;
 
-function openMenu(
-  room,
-  roomElement
-) {
+  const menu = document.getElementById("globalMenu");
 
-  currentMenuRoom =
-    room;
-
-  currentMenuRoomElement =
-    roomElement;
-
-
-  const menu =
-    document.getElementById(
-      "globalMenu"
-    );
-
-
-  if (
-    menu.parentElement !==
-    document.body
-  ) {
-
-    document.body.appendChild(
-      menu
-    );
-
+  if (menu.parentElement !== document.body) {
+    document.body.appendChild(menu);
   }
 
-
   menu.innerHTML = `
-
-    <button
-      class="menu-occupied"
-      onclick="
-        selectStatus('occupied', event)
-      ">
+    <button class="menu-occupied" onclick="selectStatus('occupied', event)">
       🔴 Occupied
     </button>
-
-    <button
-      class="menu-checkout"
-      onclick="
-        selectStatus('checkout', event)
-      ">
+    <button class="menu-checkout" onclick="selectStatus('checkout', event)">
       🟢 Check out
     </button>
-
-    <button
-      class="menu-cleaning"
-      onclick="
-        selectStatus('cleaning', event)
-      ">
+    <button class="menu-cleaning" onclick="selectStatus('cleaning', event)">
       🟠 Cleaning
     </button>
-
-    <button
-      class="menu-stayover"
-      onclick="
-        selectStatus('stayover', event)
-      ">
+    <button class="menu-stayover" onclick="selectStatus('stayover', event)">
       🟣 Stayover
     </button>
-
-    <button
-      class="menu-done"
-      onclick="
-        selectStatus('done', event)
-      ">
+    <button class="menu-done" onclick="selectStatus('done', event)">
       🔵 Finish
     </button>
-
-    <button
-      class="menu-empty"
-      onclick="
-        selectStatus('empty', event)
-      ">
+    <button class="menu-empty" onclick="selectStatus('empty', event)">
       ◻ Empty
     </button>
-
   `;
 
-
-  menu.style.display =
-    "block";
-
-  menu.style.visibility =
-    "hidden";
-
+  menu.style.display = "block";
+  menu.style.visibility = "hidden";
 
   positionMenu();
 
-
-  menu.style.visibility =
-    "visible";
-
+  menu.style.visibility = "visible";
 }
-
 
 /* =====================================================
    POSITION MENU
    ===================================================== */
-
 function positionMenu() {
+  if (!currentMenuRoomElement) return;
 
-  if (
-    !currentMenuRoomElement
-  ) {
+  const menu = document.getElementById("globalMenu");
+  const room = currentMenuRoomElement.getBoundingClientRect();
+  const menuWidth = menu.offsetWidth;
+  const menuHeight = menu.offsetHeight;
 
-    return;
+  let left = room.left + (room.width / 2) - (menuWidth / 2);
+  left = Math.max(5, Math.min(left, window.innerWidth - menuWidth - 5));
 
-  }
-
-
-  const menu =
-    document.getElementById(
-      "globalMenu"
-    );
-
-
-  const room =
-    currentMenuRoomElement
-      .getBoundingClientRect();
-
-
-  const menuWidth =
-    menu.offsetWidth;
-
-  const menuHeight =
-    menu.offsetHeight;
-
-
-  let left =
-    room.left +
-    (room.width / 2) -
-    (menuWidth / 2);
-
-
-  left =
-    Math.max(
-      5,
-      Math.min(
-        left,
-        window.innerWidth -
-        menuWidth -
-        5
-      )
-    );
-
-
-  const spaceBelow =
-    window.innerHeight -
-    room.bottom -
-    8;
-
-
-  const spaceAbove =
-    room.top -
-    8;
-
+  const spaceBelow = window.innerHeight - room.bottom - 8;
+  const spaceAbove = room.top - 8;
 
   let top;
-
-
-  if (
-    spaceBelow >= menuHeight ||
-    spaceBelow >= spaceAbove
-  ) {
-
-    top =
-      room.bottom + 6;
-
+  if (spaceBelow >= menuHeight || spaceBelow >= spaceAbove) {
+    top = room.bottom + 6;
   } else {
-
-    top =
-      room.top -
-      menuHeight -
-      6;
-
+    top = room.top - menuHeight - 6;
   }
 
+  top = Math.max(5, Math.min(top, window.innerHeight - menuHeight - 5));
 
-  top =
-    Math.max(
-      5,
-      Math.min(
-        top,
-        window.innerHeight -
-        menuHeight -
-        5
-      )
-    );
-
-
-  menu.style.left =
-    left + "px";
-
-  menu.style.top =
-    top + "px";
-
-  menu.style.maxHeight =
-    Math.max(
-      80,
-      window.innerHeight - 10
-    ) + "px";
-
+  menu.style.left = left + "px";
+  menu.style.top = top + "px";
+  menu.style.maxHeight = Math.max(80, window.innerHeight - 10) + "px";
 }
-
 
 /* =====================================================
    SELECT STATUS
    ===================================================== */
+async function selectStatus(status, event) {
+  if (event) event.stopPropagation();
+  if (currentMenuRoom === null) return;
 
-async function selectStatus(
-  status,
-  event
-) {
-
-  if (event) {
-
-    event.stopPropagation();
-
-  }
-
-
-  if (
-    currentMenuRoom === null
-  ) {
-
-    return;
-
-  }
-
-
-  const room =
-    currentMenuRoom;
-
-
+  const room = currentMenuRoom;
   closeMenu();
-
-
-  if (
-    status === "empty"
-  ) {
-
-    delete states[room];
-
-  } else {
-
-    states[room] =
-      status;
-
-  }
-
-
-  render();
-
-
-  await updateRoom(
-    room,
-    status
-  );
-
+  await updateRoom(room, status);
 }
-
 
 /* =====================================================
    CLOSE MENU
    ===================================================== */
-
 function closeMenu() {
-
-  const menu =
-    document.getElementById(
-      "globalMenu"
-    );
-
-
-  menu.style.display =
-    "none";
-
-  menu.style.visibility =
-    "hidden";
-
-
-  currentMenuRoom =
-    null;
-
-  currentMenuRoomElement =
-    null;
-
+  const menu = document.getElementById("globalMenu");
+  menu.style.display = "none";
+  menu.style.visibility = "hidden";
+  currentMenuRoom = null;
+  currentMenuRoomElement = null;
 }
 
-
 /* =====================================================
-   CLICK OUTSIDE
+   CLICK OUTSIDE / SCROLL
    ===================================================== */
-
-document.addEventListener(
-  "click",
-  function(event) {
-
-    const menu =
-      document.getElementById(
-        "globalMenu"
-      );
-
-
-    if (
-      !menu.contains(
-        event.target
-      )
-    ) {
-
-      closeMenu();
-
-    }
-
+document.addEventListener("click", function(event) {
+  const menu = document.getElementById("globalMenu");
+  if (!menu.contains(event.target)) {
+    closeMenu();
   }
-);
+});
 
-
-/* =====================================================
-   KEEP MENU ATTACHED
-   ===================================================== */
-
-window.addEventListener(
-  "scroll",
-  function() {
-
-    if (
-      currentMenuRoom !== null
-    ) {
-
-      positionMenu();
-
-    }
-
-  },
-  true
-);
-
-
-window.addEventListener(
-  "resize",
-  function() {
-
-    if (
-      currentMenuRoom !== null
-    ) {
-
-      positionMenu();
-
-    }
-
+window.addEventListener("scroll", function() {
+  if (currentMenuRoom !== null) {
+    positionMenu();
   }
-);
+}, true);
 
+window.addEventListener("resize", function() {
+  if (currentMenuRoom !== null) {
+    positionMenu();
+  }
+});
 
 /* =====================================================
-   OCCUPIED ALL
+   OCCUPIED ALL (OPTIMIZED FAST BATCH)
    ===================================================== */
-
 async function occupiedAll() {
-
-  const confirmed =
-    confirm(
-      "Set ALL rooms to Occupied?\n\n" +
-      "This will change the status of every room."
-    );
-
-
-  if (!confirmed) {
-
-    return;
-
-  }
-
-
-  const allRooms = [];
-
-
-  sections.forEach(
-    section => {
-
-      section.rooms.forEach(
-        room => {
-
-          allRooms.push(
-            room
-          );
-
-          states[room] =
-            "occupied";
-
-        }
-      );
-
-    }
+  const confirmed = confirm(
+    "Set ALL rooms to Occupied?\n\nThis will change the status of every room."
   );
 
+  if (!confirmed) return;
 
-  render();
+  sections.forEach(section => {
+    section.rooms.forEach(room => {
+      states[room] = "occupied";
+      updateRoomElement(room, "occupied");
+    });
+  });
 
-
-  for (
-    const room of allRooms
-  ) {
-
-    await updateRoom(
-      room,
-      "occupied"
-    );
-
-  }
-
-}
-
-
-/* =====================================================
-   RESET ALL
-   ===================================================== */
-
-async function resetAll() {
-
-  const confirmed =
-    confirm(
-      "Reset ALL room statuses?\n\n" +
-      "This cannot be undone."
-    );
-
-
-  if (!confirmed) {
-
-    return;
-
-  }
-
-
-  sections.forEach(
-    section => {
-
-      section.rooms.forEach(
-        room => {
-
-          delete states[room];
-
-        }
-      );
-
-    }
-  );
-
-
-  render();
-
-
-  const {
-    error
-  } =
-    await window.supabaseClient
-      .from("rooms")
-      .update({
-        status: "empty",
-        updated_at:
-          new Date().toISOString()
-      })
-      .neq(
-        "room_number",
-        0
-      );
-
+  // Bleskový hromadný zápis v 1 dotazu
+  const { error } = await window.supabaseClient
+    .from("rooms")
+    .update({
+      status: "occupied",
+      updated_at: new Date().toISOString()
+    })
+    .neq("room_number", 0);
 
   if (error) {
-
-    console.error(
-      "Reset error:",
-      error
-    );
-
-    alert(
-      "Could not reset the rooms."
-    );
-
+    console.error("Occupied all error:", error);
+    alert("Could not set all rooms to occupied.");
   }
-
 }
 
+/* =====================================================
+   RESET ALL (OPTIMIZED FAST BATCH)
+   ===================================================== */
+async function resetAll() {
+  const confirmed = confirm(
+    "Reset ALL room statuses?\n\nThis cannot be undone."
+  );
+
+  if (!confirmed) return;
+
+  sections.forEach(section => {
+    section.rooms.forEach(room => {
+      delete states[room];
+      updateRoomElement(room, "empty");
+    });
+  });
+
+  const { error } = await window.supabaseClient
+    .from("rooms")
+    .update({
+      status: "empty",
+      updated_at: new Date().toISOString()
+    })
+    .neq("room_number", 0);
+
+  if (error) {
+    console.error("Reset error:", error);
+    alert("Could not reset the rooms.");
+  }
+}
 
 /* =====================================================
    SUMMARY
    ===================================================== */
-
 function updateSummary() {
-
   let total = 0;
-
   let done = 0;
-
   let checkout = 0;
-
   let cleaning = 0;
-
   let stayover = 0;
-
   let occupied = 0;
 
+  sections.forEach(section => {
+    section.rooms.forEach(room => {
+      total++;
+      const st = states[room];
+      if (st === "done") done++;
+      else if (st === "checkout") checkout++;
+      else if (st === "cleaning") cleaning++;
+      else if (st === "stayover") stayover++;
+      else if (st === "occupied") occupied++;
+    });
+  });
 
-  sections.forEach(
-    section => {
-
-      section.rooms.forEach(
-        room => {
-
-          total++;
-
-
-          if (
-            states[room] ===
-            "done"
-          ) {
-
-            done++;
-
-          }
-
-
-          if (
-            states[room] ===
-            "checkout"
-          ) {
-
-            checkout++;
-
-          }
-
-
-          if (
-            states[room] ===
-            "cleaning"
-          ) {
-
-            cleaning++;
-
-          }
-
-
-          if (
-            states[room] ===
-            "stayover"
-          ) {
-
-            stayover++;
-
-          }
-
-
-          if (
-            states[room] ===
-            "occupied"
-          ) {
-
-            occupied++;
-
-          }
-
-        }
-      );
-
-    }
-  );
-
-
-  document.getElementById(
-    "summary"
-  ).innerHTML = `
-
-    <span>
-      <strong>${total}</strong> rooms
-    </span>
-
-    <span>
-      🔴 ${occupied}
-    </span>
-
-    <span>
-      🟢 ${checkout}
-    </span>
-
-    <span>
-      🟠 ${cleaning}
-    </span>
-
-    <span>
-      🟣 ${stayover}
-    </span>
-
-    <span>
-      🔵 ${done}
-    </span>
-
+  document.getElementById("summary").innerHTML = `
+    <span><strong>${total}</strong> rooms</span>
+    <span>🔴 ${occupied}</span>
+    <span>🟢 ${checkout}</span>
+    <span>🟠 ${cleaning}</span>
+    <span>🟣 ${stayover}</span>
+    <span>🔵 ${done}</span>
   `;
-
 }
-
 
 /* =====================================================
    DATE
    ===================================================== */
-
-document.getElementById(
-  "date"
-).textContent =
-  new Date().toLocaleDateString(
-    "en-GB",
-    {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    }
-  );
+document.getElementById("date").textContent = new Date().toLocaleDateString(
+  "cs-CZ",
+  {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  }
+);
 
 </script>
-
 </body>
 </html>
